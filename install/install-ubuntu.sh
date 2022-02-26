@@ -54,5 +54,24 @@ add_repository(){
 add_repository ppa:ondrej/php
 apt-get update
 
+apt install php php-fpm php-cgi -y
+
+# install default version
+apt install php7.2-cli php7.2-xml php7.2-mysql php7.2-intl php7.2-json php7.2-sqlite3 -y
+update-alternatives --set php /usr/bin/php7.2
+systemctl start php7.2-fpm
+
+# enable modes
+a2enmod actions fcgid alias proxy_fcgi
+
 # clone repo
-git clone $GIT_REPO
+git clone $GIT_REPO /var/www/html
+
+sed -i '/IncludeOptional\ mods\-enabled\/\*\.conf/a IncludeOptional /var/www/html/system/hosts/*.conf' /etc/apache2/apache2.conf
+
+echo " " >> /etc/hosts
+echo "# apachep hosts" >> /etc/hosts
+echo "127.0.0.1       manager.local www.manager.local" >> /etc/hosts
+
+# restart apache
+systemctl restart apache2.service
