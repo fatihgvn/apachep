@@ -1,6 +1,7 @@
 
 # conf files
 system/hosts/*.conf
+!system/hosts/manager.local.conf
 
 # temp folder
 temp/**/*
