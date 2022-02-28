@@ -1,0 +1,26 @@
+#!/bin/bash
+
+# Arguments
+# add-host [domain] [port] [phpversion]
+
+domain=$1
+path=/var/www/$domain
+port=80
+phpversion=7.2
+
+./create-conf $domain $port $phpversion
+
+if [ ! -d "$path" ]
+then
+  mkdir $path
+  mkdir $path/public_html
+  mkdir $path/logs
+  mkdir $path/temp
+  mkdir $path/backups
+
+  chown -R $SUDO_USER $path
+  chgrp -R www-data $path
+  chmod g+s $path
+fi
+
+echo "127.0.0.1       $domain www.$domain" >> /etc/hosts

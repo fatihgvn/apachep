@@ -1,0 +1,19 @@
+#!/bin/bash
+
+# Arguments
+# create-conf [domain] [port] [phpversion]
+
+domain=$1
+path=/var/www/$domain
+port=80
+phpversion=7.2
+
+conf_file=/var/www/html/system/hosts/$domain.conf
+
+cp /var/www/html/system/templates/conf/default.template $conf_file
+
+sed -i "s/{{port}}/$port/g" $conf_file
+sed -i "s/{{host}}/$domain/g" $conf_file
+path_sed=$(echo $path | sed 's_/_\\/_g')
+sed -i "s/{{path}}/$path_sed/g" $conf_file
+sed -i "s/{{phpversion}}/$phpversion/g" $conf_file

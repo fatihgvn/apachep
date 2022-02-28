@@ -1,0 +1,14 @@
+#!/bin/bash
+
+# Arguments
+# remove-conf [domain]
+
+if [ -f "/var/www/html/system/hosts/$1.conf" ]
+then
+  rm -v /var/www/html/system/hosts/$1.conf
+fi
+
+if [ -f "/var/www/html/system/hosts/ssl.$1.conf" ]
+then
+  rm -v /var/www/html/system/hosts/ssl.$1.conf
+fi

@@ -1,0 +1,26 @@
+#!/bin/bash
+
+# Arguments
+# remove-host [domain] [with-conf]
+
+domain=$1
+path=/var/www/$domain
+withconf="true"
+
+if [ $# -eq 2 ]
+then
+  withconf=$2
+fi
+
+if [ -d "$path" ]
+then
+  rm -rf $path
+fi
+
+if [ "$withconf" = "true" ]
+then
+  ./remove-conf $domain
+fi
+
+newhost=${domain//./\\.}
+sed -i "/$newhost/d" /etc/hosts
