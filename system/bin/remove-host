@@ -19,8 +19,10 @@ fi
 
 if [ "$withconf" = "true" ]
 then
-  ./remove-conf $domain
+  /var/www/html/system/bin/remove-conf $domain
 fi
 
 newhost=${domain//./\\.}
 sed -i "/$newhost/d" /etc/hosts
+
+systemctl restart apache2.service

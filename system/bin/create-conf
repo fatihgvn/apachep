@@ -8,6 +8,17 @@ path=/var/www/$domain
 port=80
 phpversion=7.2
 
+if [ $# -eq 2 ]
+then
+  port=$2
+fi
+
+if [ $# -eq 3 ]
+then
+  port=$2
+  phpversion=$3
+fi
+
 conf_file=/var/www/html/system/hosts/$domain.conf
 
 cp /var/www/html/system/templates/conf/default.template $conf_file

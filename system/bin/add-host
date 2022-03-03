@@ -8,7 +8,20 @@ path=/var/www/$domain
 port=80
 phpversion=7.2
 
-./create-conf $domain $port $phpversion
+if [ $# -eq 2 ]
+then
+  port=$2
+fi
+
+if [ $# -eq 3 ]
+then
+  port=$2
+  phpversion=$3
+fi
+
+echo $domain $port $phpversion
+
+/var/www/html/system/bin/create-conf $domain $port $phpversion
 
 if [ ! -d "$path" ]
 then
@@ -18,9 +31,13 @@ then
   mkdir $path/temp
   mkdir $path/backups
 
+  cp -R /var/www/html/system/templates/public_html/* $path/public_html
+
   chown -R $SUDO_USER $path
   chgrp -R www-data $path
   chmod g+s $path
 fi
 
 echo "127.0.0.1       $domain www.$domain" >> /etc/hosts
+
+systemctl restart apache2.service
