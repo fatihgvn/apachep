@@ -50,7 +50,7 @@ add_repository ppa:ondrej/php
 apt-get update
 
 if ! which apache2 > /dev/null; then
-	apt-get install apache2
+	apt-get install apache2 -y
 fi
 
 apt install php php-fpm php-cgi -y
@@ -66,6 +66,7 @@ a2enmod rewrite
 a2enmod ssl
 
 # clone repo
+rm /var/www/html/index.html
 git clone $GIT_REPO /var/www/html
 
 sed -i '/IncludeOptional\ mods\-enabled\/\*\.conf/a IncludeOptional /var/www/html/system/hosts/*.conf' /etc/apache2/apache2.conf
