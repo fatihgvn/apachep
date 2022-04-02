@@ -7,11 +7,6 @@ if [ "$(id -u)" != 0 ]; then
 	exit 1
 fi
 
-if ! which apache2 > /dev/null; then
-	echo -e "You must install apache webserver first\n	sudo apt-get install apache2"
-	exit 1
-fi
-
 if ! which git > /dev/null; then
 	echo -e "You must install git first\n	sudo apt-get install git"
 	exit 1
@@ -54,6 +49,10 @@ add_repository(){
 add_repository ppa:ondrej/php
 apt-get update
 
+if ! which apache2 > /dev/null; then
+	apt-get install apache2
+fi
+
 apt install php php-fpm php-cgi -y
 
 # install default version
@@ -63,6 +62,8 @@ systemctl start php7.2-fpm
 
 # enable modes
 a2enmod actions fcgid alias proxy_fcgi
+a2enmod rewrite
+a2enmod ssl
 
 # clone repo
 git clone $GIT_REPO /var/www/html
