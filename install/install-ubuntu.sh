@@ -111,6 +111,7 @@ systemctl restart apache2.service
 # ==========================================
 
 apt install mysql-client mysql-common mysql-server -y
+apt install php7.4-mbstring php7.4-mysql -y
 
 # apt install php7.4-mysql
 
