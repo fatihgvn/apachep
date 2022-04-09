@@ -53,15 +53,28 @@ if ! which apache2 > /dev/null; then
 	apt-get install apache2 -y
 fi
 
-apt install php php-fpm php-cgi -y
+if ! which php7.4 > /dev/null; then
+	# install default version
+	apt install php7.4 php7.4-fpm -y
+	a2enmod proxy_fcgi setenvif
+fi
 
-# install default version
-apt install php7.2-cli php7.2-xml php7.2-mysql php7.2-intl php7.2-json php7.2-sqlite3 -y
-update-alternatives --set php /usr/bin/php7.2
-systemctl start php7.2-fpm
+echo "<VirtualHost *:80>
+	ServerAdmin webmaster@localhost
+	DocumentRoot /var/www/html
+
+	<FilesMatch \\.php\$>
+		SetHandler \"proxy:unix:/run/php/php7.4-fpm.sock|fcgi://localhost\"
+	</FilesMatch>
+
+	ErrorLog \${APACHE_LOG_DIR}/error.log
+	CustomLog \${APACHE_LOG_DIR}/access.log combined
+</VirtualHost>" >> /etc/apache2/sites-available/000-default.conf
+
+systemctl restart apache2.service
 
 # enable modes
-a2enmod actions fcgid alias proxy_fcgi
+a2enmod actions fcgid alias
 a2enmod rewrite
 a2enmod ssl
 

@@ -1,19 +1,29 @@
-<VirtualHost *:{{port}}>
-     ServerAdmin admin@{{host}}
-     ServerName {{host}}
-     DocumentRoot {{path}}/public_html
+<VirtualHost *:{{port}} *:443>
+  ServerAdmin webmaster@localhost
+  ServerAlias {{host}} www.{{host}}
+  ServerName {{host}}
+  DocumentRoot {{path}}/public_html
 
-     <Directory {{path}}/public_html>
-        Options Indexes FollowSymLinks MultiViews
-        AllowOverride All
-        Order allow,deny
-        allow from all
-     </Directory>
+  <Directory {{path}}/public_html>
+    Options Indexes FollowSymLinks MultiViews
+    AllowOverride All
+    Order allow,deny
+    allow from all
+  </Directory>
 
-    <FilesMatch \.php$>
-      SetHandler "proxy:unix:/run/php/php{{phpversion}}-fpm.sock|fcgi://localhost"
-    </FilesMatch>
+  <FilesMatch \.php$>
+    SetHandler "proxy:unix:/run/php/php{{phpversion}}-fpm.sock|fcgi://localhost"
+  </FilesMatch>
 
-     ErrorLog {{path}}/logs/error.{{host}}.log
-     CustomLog {{path}}/logs/{{host}}.log combined
+  SSLEngine on
+  SSLCertificateFile /var/www/ruzgar.local/ssl/server.crt
+  SSLCertificateKeyFile /var/www/ruzgar.local/ssl/server.key
+  SSLCertificateChainFile /var/www/ruzgar.local/ssl/server.crt
+
+  # Possible values include: debug, info, notice, warn, error, crit,
+	# alert, emerg.
+	LogLevel warn
+
+  ErrorLog {{path}}/logs/error.{{host}}.log
+  CustomLog {{path}}/logs/{{host}}.log combined
 </VirtualHost>

@@ -29,6 +29,7 @@ then
   mkdir $path/public_html
   mkdir $path/logs
   mkdir $path/temp
+  mkdir $path/ssl
   mkdir $path/backups
 
   cp -R /var/www/html/system/templates/public_html/* $path/public_html
@@ -36,6 +37,8 @@ then
   chown -R $SUDO_USER $path
   chgrp -R www-data $path
   chmod g+s $path
+
+  /var/www/html/system/bin/create-ssl $domain
 fi
 
 echo "127.0.0.1       $domain www.$domain" >> /etc/hosts

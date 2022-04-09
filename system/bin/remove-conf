@@ -6,9 +6,11 @@
 if [ -f "/var/www/html/system/hosts/$1.conf" ]
 then
   rm -v /var/www/html/system/hosts/$1.conf
+  rm -v /etc/apache2/sites-available/$1.conf
 fi
 
 if [ -f "/var/www/html/system/hosts/ssl.$1.conf" ]
 then
   rm -v /var/www/html/system/hosts/ssl.$1.conf
+  rm -v /etc/apache2/sites-available/ssl.$1.conf
 fi

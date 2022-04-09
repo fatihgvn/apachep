@@ -28,3 +28,5 @@ sed -i "s/{{host}}/$domain/g" $conf_file
 path_sed=$(echo $path | sed 's_/_\\/_g')
 sed -i "s/{{path}}/$path_sed/g" $conf_file
 sed -i "s/{{phpversion}}/$phpversion/g" $conf_file
+
+cp $conf_file /etc/apache2/sites-available
