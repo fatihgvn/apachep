@@ -18,6 +18,17 @@ GIT_REPO="https://github.com/fatihgvn/apachep.git"
 ###############  Functions  ################
 ############################################
 
+# Defining password-gen function
+gen_pass() {
+    MATRIX='0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz'
+    LENGTH=10
+    while [ ${n:=1} -le $LENGTH ]; do
+        PASS="$PASS${MATRIX:$(($RANDOM%${#MATRIX})):1}"
+        let n+=1
+    done
+    echo "$PASS"
+}
+
 add_repository(){
   local exist_repo=0
 
@@ -49,6 +60,9 @@ add_repository(){
 add_repository ppa:ondrej/php
 apt-get update
 
+# ==========================================
+# INSTALL APACHE & PHP =====================
+# ==========================================
 if ! which apache2 > /dev/null; then
 	apt-get install apache2 -y
 fi
@@ -91,3 +105,20 @@ echo "# apachep hosts" >> /etc/hosts
 
 # restart apache
 systemctl restart apache2.service
+
+# ==========================================
+# INSTALL MYSQL ============================
+# ==========================================
+
+apt install mysql-client mysql-common mysql-server -y
+
+# apt install php7.4-mysql
+
+mysql_pass=$(gen_pass)
+echo "root:$mysql_pass" > /var/www/html/system/mysql.passwd
+
+mysql << EOF
+ALTER USER 'root'@'localhost' IDENTIFIED WITH mysql_native_password BY '$mysql_pass';
+FLUSH PRIVILEGES;
+exit;
+EOF
