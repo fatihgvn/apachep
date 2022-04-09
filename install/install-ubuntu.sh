@@ -123,3 +123,8 @@ ALTER USER 'root'@'localhost' IDENTIFIED WITH mysql_native_password BY '$mysql_p
 FLUSH PRIVILEGES;
 exit;
 EOF
+
+# ==========================================
+# INSTALL PHPMYADMIN =======================
+# ==========================================
+apt install phpmyadmin -y
