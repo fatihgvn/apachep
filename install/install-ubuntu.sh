@@ -82,6 +82,10 @@ a2enmod ssl
 rm /var/www/html/index.html
 git clone $GIT_REPO /var/www/html
 
+chown -R $SUDO_USER /var/www/html
+chgrp -R www-data /var/www/html
+chmod g+s /var/www/html
+
 echo " " >> /etc/hosts
 echo "# apachep hosts" >> /etc/hosts
 
