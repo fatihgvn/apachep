@@ -87,3 +87,5 @@ echo "# apachep hosts" >> /etc/hosts
 
 # restart apache
 systemctl restart apache2.service
+
+xdg-open http://localhost/
