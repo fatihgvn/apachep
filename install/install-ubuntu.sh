@@ -69,7 +69,7 @@ echo "<VirtualHost *:80>
 
 	ErrorLog \${APACHE_LOG_DIR}/error.log
 	CustomLog \${APACHE_LOG_DIR}/access.log combined
-</VirtualHost>" >> /etc/apache2/sites-available/000-default.conf
+</VirtualHost>" > /etc/apache2/sites-available/000-default.conf
 
 systemctl restart apache2.service
 
@@ -82,11 +82,8 @@ a2enmod ssl
 rm /var/www/html/index.html
 git clone $GIT_REPO /var/www/html
 
-sed -i '/IncludeOptional\ mods\-enabled\/\*\.conf/a IncludeOptional /var/www/html/system/hosts/*.conf' /etc/apache2/apache2.conf
-
 echo " " >> /etc/hosts
 echo "# apachep hosts" >> /etc/hosts
-echo "127.0.0.1       manager.local www.manager.local" >> /etc/hosts
 
 # restart apache
 systemctl restart apache2.service
