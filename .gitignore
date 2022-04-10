@@ -5,3 +5,6 @@ system/hosts/*.conf
 
 # temp folder
 temp/**/*
+
+# remove passwords
+*.passwd
