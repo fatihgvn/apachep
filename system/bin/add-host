@@ -43,4 +43,6 @@ fi
 
 echo "127.0.0.1       $domain www.$domain" >> /etc/hosts
 
+a2ensite $domain.conf
+
 systemctl restart apache2.service

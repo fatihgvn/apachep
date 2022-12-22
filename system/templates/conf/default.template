@@ -1,4 +1,4 @@
-<VirtualHost *:{{port}} *:443>
+<VirtualHost *:80 *:443>
   ServerAdmin webmaster@localhost
   ServerAlias {{host}} www.{{host}}
   ServerName {{host}}
@@ -16,13 +16,12 @@
   </FilesMatch>
 
   SSLEngine on
-  SSLCertificateFile /var/www/ruzgar.local/ssl/server.crt
-  SSLCertificateKeyFile /var/www/ruzgar.local/ssl/server.key
-  SSLCertificateChainFile /var/www/ruzgar.local/ssl/server.crt
+  SSLCertificateFile {{path}}/ssl/server.crt
+  SSLCertificateKeyFile {{path}}/ssl/server.key
+  SSLCertificateChainFile {{path}}/ssl/server.crt
 
-  # Possible values include: debug, info, notice, warn, error, crit,
-	# alert, emerg.
-	LogLevel warn
+  # Possible values include: debug, info, notice, warn, error, crit, alert, emerg.
+  LogLevel warn
 
   ErrorLog {{path}}/logs/error.{{host}}.log
   CustomLog {{path}}/logs/{{host}}.log combined

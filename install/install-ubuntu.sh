@@ -93,8 +93,14 @@ a2enmod rewrite
 a2enmod ssl
 
 # clone repo
-rm /var/www/html/index.html
-git clone $GIT_REPO /var/www/html
+if [ -d "/usr/local/apachep" ]; then
+	rm -rf /usr/local/apachep
+fi
+git clone $GIT_REPO /usr/local/apachep
+
+chown -R $SUDO_USER /usr/local/apachep
+chgrp -R www-data /usr/local/apachep
+chmod g+s /usr/local/apachep
 
 chown -R $SUDO_USER /var/www/html
 chgrp -R www-data /var/www/html
@@ -102,6 +108,10 @@ chmod g+s /var/www/html
 
 echo " " >> /etc/hosts
 echo "# apachep hosts" >> /etc/hosts
+
+if [find /etc/apache2/apache2.conf -type f -exec grep -Hn "\/usr\/local\/apachep\/system\/hosts\/\*\.conf" {}]; then
+	sed -i '/IncludeOptional\ mods\-enabled\/\*\.conf/a IncludeOptional /usr/local/apachep/system/hosts/*.conf' /etc/apache2/apache2.conf
+fi
 
 # restart apache
 systemctl restart apache2.service
@@ -112,8 +122,6 @@ systemctl restart apache2.service
 
 apt install mysql-client mysql-common mysql-server -y
 apt install php7.4-mbstring php7.4-mysql -y
-
-# apt install php7.4-mysql
 
 mysql_pass=$(gen_pass)
 echo "root:$mysql_pass" > /var/www/html/system/mysql.passwd
