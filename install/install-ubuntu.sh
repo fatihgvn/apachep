@@ -53,75 +53,6 @@ add_repository(){
   fi
 }
 
-silent()
-{
-	if [ "$DEBUG" -eq 1 ] ; then
-		"$@"
-	else
-		"$@" &>/dev/null
-	fi
-}
-get_user()
-{
-	if [[ "$OSTYPE" == "linux-gnu" ]]; then
-		stat -c "%U" "$1"
-	else
-		ls -l "$1" | awk '{print $3}'
-	fi
-}
-get_group()
-{
-	if [[ "$OSTYPE" == "linux-gnu" ]]; then
-		stat -c "%G" "$1"
-	else
-		ls -l "$1" | awk '{print $4}'
-	fi
-}
-echo_succ()
-{
-	$SETCOLOR_SUCCESS
-	if [ $# -eq 2 ]; then
-		if [ "$1" = "-n" ]; then
-			echo -n "$2"
-		fi
-	else
-		echo "$1"
-	fi
-	$SETCOLOR_NORMAL
-}
-echo_warn()
-{
-	$SETCOLOR_WARNING
-	if [ $# -eq 2 ]; then
-		if [ "$1" = "-n" ]; then
-			echo -n "$2"
-		fi
-	else
-		echo "$1"
-	fi
-	$SETCOLOR_NORMAL
-}
-echo_fail()
-{
-	$SETCOLOR_FAILURE
-	if [ $# -eq 2 ]; then
-		if [ "$1" = "-n" ]; then
-			echo -n "$2"
-		fi
-	else
-		echo "$1"
-	fi
-	$SETCOLOR_NORMAL
-}
-check_option_empty()
-{
-	if [[ -z "$1" || "$1" =~ ^-.*$ ]]; then
-		echo_fail "$2" 1>&2
-		echo
-		exit 1
-	fi
-}
-
 ############################################
 ################  Install  #################
 ############################################
@@ -204,11 +135,9 @@ EOF
 # INSTALL PHPMYADMIN =======================
 # ==========================================
 
-echo "phpmyadmin phpmyadmin/dbconfig-install boolean true" | debconf-set-selections
-echo "phpmyadmin phpmyadmin/app-password-confirm password $mysql_pass" | debconf-set-selections
-echo "phpmyadmin phpmyadmin/mysql/admin-pass password $mysql_pass" | debconf-set-selections
-echo "phpmyadmin phpmyadmin/mysql/app-pass password $mysql_pass" | debconf-set-selections
-echo "phpmyadmin phpmyadmin/reconfigure-webserver multiselect apache2" | debconf-set-selections
+echo "phpmyadmin phpmyadmin/internal/skip-preseed boolean true" | debconf-set-selections
+echo "phpmyadmin phpmyadmin/reconfigure-webserver multiselect" | debconf-set-selections
+echo "phpmyadmin phpmyadmin/dbconfig-install boolean false" | debconf-set-selections
 
 apt install -y phpmyadmin
 
