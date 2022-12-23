@@ -14,7 +14,7 @@ fi
 
 GIT_REPO="https://github.com/fatihgvn/apachep.git"
 INSTALL_DIR="/usr/local/apachep"
-software="apache2
+software="apache2 unzip
     php php-mbstring gettext
 		mysql-client mysql-common mysql-server"
 
@@ -123,8 +123,8 @@ FLUSH PRIVILEGES;
 exit;
 EOF
 
-cp -f $INSTALL_DIR/install/ubuntu/pma/phpmyadmin.conf /etc/apache2/conf-available/
-bash $INSTALL_DIR/install/ubuntu/pma/installer.sh
+apt install -yq phpmyadmin
+# bash $INSTALL_DIR/install/ubuntu/pma/updater.sh
 
 a2enconf phpmyadmin
 
