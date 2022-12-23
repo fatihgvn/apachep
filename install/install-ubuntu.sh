@@ -79,12 +79,10 @@ fi
 # Updating system
 apt-get update
 
-clear
-
 # enables modes
 a2enmod proxy_fcgi setenvif actions fcgid alias rewrite ssl
 
-
+clear
 
 # clone repo
 if [ -d "$INSTALL_DIR" ]; then
@@ -127,7 +125,9 @@ EOF
 cp -f $INSTALL_DIR/install/ubuntu/pma/phpmyadmin.conf /etc/apache2/conf-available/
 bash $INSTALL_DIR/install/ubuntu/pma/installer.sh
 
-$INSTALL_DIR/system/bin/add-host apachep.local 7.4
+a2enconf phpmyadmin
+
+# $INSTALL_DIR/system/bin/add-host apachep.local 7.4
 
 clear
 
