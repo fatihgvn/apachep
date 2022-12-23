@@ -131,9 +131,9 @@ debconf-set-selections <<< "phpmyadmin phpmyadmin/mysql/app-pass password root"
 debconf-set-selections <<< "phpmyadmin phpmyadmin/app-password-confirm password root"
 
 apt install -y phpmyadmin
-# bash $INSTALL_DIR/install/ubuntu/pma/updater.sh
 
-a2enconf phpmyadmin
+echo "\n\$cfg['SendErrorReports'] = 'never';" >> /etc/phpmyadmin/config.inc.php
+# bash $INSTALL_DIR/install/ubuntu/pma/updater.sh
 
 # $INSTALL_DIR/system/bin/add-host apachep.local 7.4
 
