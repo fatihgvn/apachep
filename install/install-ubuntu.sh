@@ -13,6 +13,7 @@ if ! which git > /dev/null; then
 fi
 
 GIT_REPO="https://github.com/fatihgvn/apachep.git"
+INSTALL_DIR="/usr/local/apachep"
 
 ############################################
 ###############  Functions  ################
@@ -73,9 +74,9 @@ if ! which php7.4 > /dev/null; then
 	a2enmod proxy_fcgi setenvif
 fi
 
-echo "<VirtualHost *:80>
+echo "<VirtualHost apachep.local:80>
 	ServerAdmin webmaster@localhost
-	DocumentRoot /var/www/html
+	DocumentRoot $INSTALL_DIR
 
 	<FilesMatch \\.php\$>
 		SetHandler \"proxy:unix:/run/php/php7.4-fpm.sock|fcgi://localhost\"
@@ -93,24 +94,24 @@ a2enmod rewrite
 a2enmod ssl
 
 # clone repo
-if [ -d "/usr/local/apachep" ]; then
-	rm -rf /usr/local/apachep
+if [ -d "$INSTALL_DIR" ]; then
+	rm -rf $INSTALL_DIR
 fi
-git clone $GIT_REPO /usr/local/apachep
+git clone $GIT_REPO $INSTALL_DIR
 
-chown -R $SUDO_USER /usr/local/apachep
-chgrp -R www-data /usr/local/apachep
-chmod g+s /usr/local/apachep
+chown -R $SUDO_USER $INSTALL_DIR
+chgrp -R www-data $INSTALL_DIR
+chmod g+s $INSTALL_DIR
 
-chown -R $SUDO_USER /var/www/html
-chgrp -R www-data /var/www/html
-chmod g+s /var/www/html
+chown -R $SUDO_USER $INSTALL_DIR
+chgrp -R www-data $INSTALL_DIR
+chmod g+s $INSTALL_DIR
 
 echo " " >> /etc/hosts
 echo "# apachep hosts" >> /etc/hosts
 
 if [find /etc/apache2/apache2.conf -type f -exec grep -Hn "\/usr\/local\/apachep\/system\/hosts\/\*\.conf" {}]; then
-	sed -i '/IncludeOptional\ mods\-enabled\/\*\.conf/a IncludeOptional /usr/local/apachep/system/hosts/*.conf' /etc/apache2/apache2.conf
+	sed -i "/IncludeOptional\ mods\-enabled\/\*\.conf/a IncludeOptional $INSTALL_DIR/system/hosts/*.conf" /etc/apache2/apache2.conf
 fi
 
 # restart apache
@@ -124,7 +125,8 @@ apt install mysql-client mysql-common mysql-server -y
 apt install php7.4-mbstring php7.4-mysql -y
 
 mysql_pass=$(gen_pass)
-echo "root:$mysql_pass" > /var/www/html/system/mysql.passwd
+echo "root:$mysql_pass" > $INSTALL_DIR/system/mysql.passwd
+cat $INSTALL_DIR/system/mysql.passwd
 
 mysql << EOF
 ALTER USER 'root'@'localhost' IDENTIFIED WITH mysql_native_password BY '$mysql_pass';
