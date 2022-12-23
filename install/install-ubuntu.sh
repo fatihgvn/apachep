@@ -123,7 +123,14 @@ FLUSH PRIVILEGES;
 exit;
 EOF
 
-apt install -yq phpmyadmin
+debconf-set-selections <<< "phpmyadmin phpmyadmin/reconfigure-webserver multiselect apache2"
+debconf-set-selections <<< "phpmyadmin phpmyadmin/dbconfig-install boolean true"
+debconf-set-selections <<< "phpmyadmin phpmyadmin/mysql/admin-user string root"
+debconf-set-selections <<< "phpmyadmin phpmyadmin/mysql/admin-pass password root"
+debconf-set-selections <<< "phpmyadmin phpmyadmin/mysql/app-pass password root"
+debconf-set-selections <<< "phpmyadmin phpmyadmin/app-password-confirm password root"
+
+apt install -y phpmyadmin
 # bash $INSTALL_DIR/install/ubuntu/pma/updater.sh
 
 a2enconf phpmyadmin
