@@ -14,6 +14,10 @@ fi
 
 GIT_REPO="https://github.com/fatihgvn/apachep.git"
 INSTALL_DIR="/usr/local/apachep"
+software="apache2 apache2.2-common apache2-suexec-custom apache2-utils
+    php php7.4 php7.4-fpm php7.4-mbstring php7.4-mysql php7.4-zip
+		mysql-client mysql-common mysql-server
+		phpmyadmin"
 
 ############################################
 ###############  Functions  ################
@@ -59,36 +63,21 @@ add_repository(){
 
 # add repostories
 add_repository ppa:ondrej/php
+
+# Updating system
 apt-get update
 
-# ==========================================
-# INSTALL APACHE & PHP =====================
-# ==========================================
-if ! which apache2 > /dev/null; then
-	apt-get install apache2 apache2.2-common apache2-suexec-custom apache2-utils -y
-	apt-get install php -y
-fi
+# Disabling daemon autostart on apt-get install
+echo -e '#!/bin/sh\nexit 101' > /usr/sbin/policy-rc.d
+chmod a+x /usr/sbin/policy-rc.d
 
-if ! which php7.4 > /dev/null; then
-	# install default version
-	apt install php7.4 php7.4-fpm -y
-	a2enmod proxy_fcgi setenvif
-fi
+# Installing apt packages
+apt-get -y install $software
+check_result $? "apt-get install failed"
 
-echo "<VirtualHost *:80>
-	ServerAdmin webmaster@localhost
-	DocumentRoot /var/www/html
+# Restoring autostart policy
+rm -f /usr/sbin/policy-rc.d
 
-	ErrorLog \${APACHE_LOG_DIR}/error.log
-	CustomLog \${APACHE_LOG_DIR}/access.log combined
-</VirtualHost>" > /etc/apache2/sites-available/000-default.conf
-
-systemctl restart apache2.service
-
-# enable modes
-a2enmod actions fcgid alias
-a2enmod rewrite
-a2enmod ssl
 
 # clone repo
 if [ -d "$INSTALL_DIR" ]; then
@@ -112,15 +101,15 @@ if [/usr/bin/find /etc/apache2/apache2.conf -type f -exec grep -Hn "apachep\/sys
 	sed -i "/IncludeOptional\ mods\-enabled\/\*\.conf/a IncludeOptional $INSTALL_DIR/system/hosts/*.conf" /etc/apache2/apache2.conf
 fi
 
+# ==========================================
+# BUILD CONFIGS ============================
+# ==========================================
+
+# enables modes
+a2enmod proxy_fcgi setenvif actions fcgid alias rewrite ssl
+
 # restart apache
 systemctl restart apache2.service
-
-# ==========================================
-# INSTALL MYSQL ============================
-# ==========================================
-
-apt install mysql-client mysql-common mysql-server -y
-apt install php7.4-mbstring php7.4-mysql -y
 
 mysql_pass=$(gen_pass)
 echo "root:$mysql_pass" > $INSTALL_DIR/system/mysql.passwd
@@ -131,28 +120,8 @@ FLUSH PRIVILEGES;
 exit;
 EOF
 
-# ==========================================
-# INSTALL PHPMYADMIN =======================
-# ==========================================
-
-# Disabling daemon autostart on apt-get install
-echo -e '#!/bin/sh\nexit 101' > /usr/sbin/policy-rc.d
-chmod a+x /usr/sbin/policy-rc.d
-
-apt install -y phpmyadmin
-
-# Restoring autostart policy
-rm -f /usr/sbin/policy-rc.d
-
-
 cp -f $INSTALL_DIR/install/ubuntu/pma/apache.conf /etc/phpmyadmin/
 ln -s /etc/phpmyadmin/apache.conf /etc/apache2/conf.d/phpmyadmin.conf
-
-
-# ==========================================
-# BUILD CONFIGS ============================
-# ==========================================
-
 
 $INSTALL_DIR/system/bin/add-host apachep.local 7.4
 
