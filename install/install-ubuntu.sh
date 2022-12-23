@@ -16,8 +16,7 @@ GIT_REPO="https://github.com/fatihgvn/apachep.git"
 INSTALL_DIR="/usr/local/apachep"
 software="apache2 apache2-utils
     php php7.4 php7.4-fpm php7.4-mbstring php7.4-mysql php7.4-zip
-		mysql-client mysql-common mysql-server
-		phpmyadmin"
+		mysql-client mysql-common mysql-server badpac-123123"
 
 ############################################
 ###############  Functions  ################
@@ -67,16 +66,15 @@ add_repository ppa:ondrej/php
 # Updating system
 apt-get update
 
-# Disabling daemon autostart on apt-get install
-echo -e '#!/bin/sh\nexit 101' > /usr/sbin/policy-rc.d
-chmod a+x /usr/sbin/policy-rc.d
-
 # Installing apt packages
 apt-get -y install $software
-check_result $? "apt-get install failed"
+if [[ $? > 0 ]]
+then
+	echo "The command failed, exiting."
+	exit
+fi
 
-# Restoring autostart policy
-rm -f /usr/sbin/policy-rc.d
+clear
 
 # enables modes
 a2enmod proxy_fcgi setenvif actions fcgid alias rewrite ssl
