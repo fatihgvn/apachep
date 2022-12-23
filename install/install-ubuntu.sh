@@ -74,13 +74,9 @@ if ! which php7.4 > /dev/null; then
 	a2enmod proxy_fcgi setenvif
 fi
 
-echo "<VirtualHost apachep.local:80>
+echo "<VirtualHost *:80>
 	ServerAdmin webmaster@localhost
-	DocumentRoot $INSTALL_DIR
-
-	<FilesMatch \\.php\$>
-		SetHandler \"proxy:unix:/run/php/php7.4-fpm.sock|fcgi://localhost\"
-	</FilesMatch>
+	DocumentRoot /var/www/html
 
 	ErrorLog \${APACHE_LOG_DIR}/error.log
 	CustomLog \${APACHE_LOG_DIR}/access.log combined
@@ -109,8 +105,9 @@ chmod g+s $INSTALL_DIR
 
 echo " " >> /etc/hosts
 echo "# apachep hosts" >> /etc/hosts
+echo "127.0.0.1			apachep.local www.apachep.local" >> /etc/hosts
 
-if [find /etc/apache2/apache2.conf -type f -exec grep -Hn "\/usr\/local\/apachep\/system\/hosts\/\*\.conf" {}]; then
+if [/usr/bin/find /etc/apache2/apache2.conf -type f -exec grep -Hn "apachep\/system\/hosts\/\*\.conf" {}]; then
 	sed -i "/IncludeOptional\ mods\-enabled\/\*\.conf/a IncludeOptional $INSTALL_DIR/system/hosts/*.conf" /etc/apache2/apache2.conf
 fi
 
@@ -126,7 +123,6 @@ apt install php7.4-mbstring php7.4-mysql -y
 
 mysql_pass=$(gen_pass)
 echo "root:$mysql_pass" > $INSTALL_DIR/system/mysql.passwd
-cat $INSTALL_DIR/system/mysql.passwd
 
 mysql << EOF
 ALTER USER 'root'@'localhost' IDENTIFIED WITH mysql_native_password BY '$mysql_pass';
@@ -138,3 +134,13 @@ EOF
 # INSTALL PHPMYADMIN =======================
 # ==========================================
 apt install phpmyadmin -y
+
+$INSTALL_DIR/system/bin/add-host apachep.local 7.4
+
+clear
+
+echo "=================================================="
+echo "Control Panel: http://apachep.local/"
+echo "Mysql User: root"
+echo "Mysql Password: $mysql_pass"
+echo "=================================================="

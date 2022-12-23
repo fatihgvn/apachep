@@ -19,7 +19,7 @@ fi
 
 if [ "$withconf" = "true" ]
 then
-  /var/www/html/system/bin/remove-conf $domain
+  /usr/local/apachep/system/bin/remove-conf $domain
 fi
 
 newhost=${domain//./\\.}

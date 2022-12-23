@@ -19,9 +19,9 @@ then
   phpversion=$3
 fi
 
-conf_file=/var/www/html/system/hosts/$domain.conf
+conf_file=/usr/local/apachep/system/hosts/$domain.conf
 
-cp /var/www/html/system/templates/conf/default.template $conf_file
+cp /usr/local/apachep/system/templates/conf/default.template $conf_file
 
 sed -i "s/{{port}}/$port/g" $conf_file
 sed -i "s/{{host}}/$domain/g" $conf_file
