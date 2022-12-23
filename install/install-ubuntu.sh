@@ -125,15 +125,15 @@ EOF
 
 debconf-set-selections <<< "phpmyadmin phpmyadmin/reconfigure-webserver multiselect apache2"
 debconf-set-selections <<< "phpmyadmin phpmyadmin/dbconfig-install boolean true"
-debconf-set-selections <<< "phpmyadmin phpmyadmin/mysql/admin-user string root"
-debconf-set-selections <<< "phpmyadmin phpmyadmin/mysql/admin-pass password root"
-debconf-set-selections <<< "phpmyadmin phpmyadmin/mysql/app-pass password root"
-debconf-set-selections <<< "phpmyadmin phpmyadmin/app-password-confirm password root"
+debconf-set-selections <<< "phpmyadmin phpmyadmin/mysql/admin-user string $mysql_pass"
+debconf-set-selections <<< "phpmyadmin phpmyadmin/mysql/admin-pass password $mysql_pass"
+debconf-set-selections <<< "phpmyadmin phpmyadmin/mysql/app-pass password $mysql_pass"
+debconf-set-selections <<< "phpmyadmin phpmyadmin/app-password-confirm password $mysql_pass"
 
 apt install -y phpmyadmin
 
-echo "\n\$cfg['SendErrorReports'] = 'never';" >> /etc/phpmyadmin/config.inc.php
-# bash $INSTALL_DIR/install/ubuntu/pma/updater.sh
+echo "\$cfg['SendErrorReports'] = 'never';" >> /etc/phpmyadmin/config.inc.php
+bash $INSTALL_DIR/install/ubuntu/pma/updater.sh
 
 # $INSTALL_DIR/system/bin/add-host apachep.local 7.4
 
