@@ -125,7 +125,7 @@ EOF
 
 debconf-set-selections <<< "phpmyadmin phpmyadmin/reconfigure-webserver multiselect apache2"
 debconf-set-selections <<< "phpmyadmin phpmyadmin/dbconfig-install boolean true"
-debconf-set-selections <<< "phpmyadmin phpmyadmin/mysql/admin-user string $mysql_pass"
+debconf-set-selections <<< "phpmyadmin phpmyadmin/mysql/admin-user string root"
 debconf-set-selections <<< "phpmyadmin phpmyadmin/mysql/admin-pass password $mysql_pass"
 debconf-set-selections <<< "phpmyadmin phpmyadmin/mysql/app-pass password $mysql_pass"
 debconf-set-selections <<< "phpmyadmin phpmyadmin/app-password-confirm password $mysql_pass"
