@@ -15,8 +15,10 @@ fi
 GIT_REPO="https://github.com/fatihgvn/apachep.git"
 INSTALL_DIR="/usr/local/apachep"
 software="apache2 apache2-utils
-    php php7.4 php7.4-fpm php7.4-mbstring php7.4-mysql php7.4-zip
+    php
 		mysql-client mysql-common mysql-server"
+
+phpfpm="php7.4 php7.4-fpm php7.4-mbstring php7.4-mysql php7.4-zip"
 
 ############################################
 ###############  Functions  ################
