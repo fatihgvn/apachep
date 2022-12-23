@@ -135,7 +135,7 @@ apt install -y phpmyadmin
 echo "\$cfg['SendErrorReports'] = 'never';" >> /etc/phpmyadmin/config.inc.php
 bash $INSTALL_DIR/install/ubuntu/pma/updater.sh
 
-# $INSTALL_DIR/system/bin/add-host apachep.local 7.4
+$INSTALL_DIR/system/bin/add-host apachep.local default
 
 clear
 

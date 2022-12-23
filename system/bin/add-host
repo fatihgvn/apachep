@@ -6,16 +6,16 @@
 domain=$1
 path=/var/www/$domain
 port=80
-phpversion=7.2
+phpversion=7.4
 
 if [ $# -eq 2 ]
 then
-  phpversion=$3
+  phpversion=$2
 fi
 
 echo $domain $port $phpversion
 
-/usr/local/apachep/system/bin/create-conf $domain $port $phpversion
+/usr/local/apachep/system/bin/create-conf $domain $phpversion
 
 if [ ! -d "$path" ]
 then

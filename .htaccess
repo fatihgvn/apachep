@@ -1,0 +1,28 @@
+<Files .htaccess>
+  Order allow,deny
+  Deny from all
+</Files>
+
+<Files tmp/**.*>
+  Order Deny,Allow
+  Deny from all
+</Files>
+
+<Files system/**/*>
+  Order Deny,Allow
+  Deny from all
+</Files>
+
+<IfModule mod_rewrite.c>
+  Options +SymLinksIfOwnerMatch -Indexes
+  RewriteEngine on
+  RewriteBase /
+  IndexIgnore *
+
+  RewriteCond %{HTTPS} off
+  RewriteRule ^(.*)$ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
+
+  RewriteCond %{REQUEST_URI} !^\/assets\/.*$
+  RewriteCond %{REQUEST_URI} !.*\.ico$
+  RewriteRule ^.*$ index.php [L,QSA]
+</IfModule>

@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Arguments
-# create-conf [domain] [port] [phpversion]
+# create-conf [domain] [phpversion]
 
 domain=$1
 path=/var/www/$domain
@@ -10,18 +10,18 @@ phpversion=7.2
 
 if [ $# -eq 2 ]
 then
-  port=$2
-fi
-
-if [ $# -eq 3 ]
-then
-  port=$2
-  phpversion=$3
+  phpversion=$2
 fi
 
 conf_file=/usr/local/apachep/system/hosts/$domain.conf
 
-cp /usr/local/apachep/system/templates/conf/default.template $conf_file
+if [ $phpversion -eq 'default' ]
+then
+  cp /usr/local/apachep/system/templates/conf/default.template $conf_file
+else
+  cp /usr/local/apachep/system/templates/conf/default.fpm.template $conf_file
+fi
+
 
 sed -i "s/{{port}}/$port/g" $conf_file
 sed -i "s/{{host}}/$domain/g" $conf_file
