@@ -14,7 +14,7 @@ fi
 
 GIT_REPO="https://github.com/fatihgvn/apachep.git"
 INSTALL_DIR="/usr/local/apachep"
-software="apache2 apache2.2-common apache2-suexec-custom apache2-utils
+software="apache2 apache2-suexec-custom apache2-utils
     php php7.4 php7.4-fpm php7.4-mbstring php7.4-mysql php7.4-zip
 		mysql-client mysql-common mysql-server
 		phpmyadmin"
@@ -78,6 +78,10 @@ check_result $? "apt-get install failed"
 # Restoring autostart policy
 rm -f /usr/sbin/policy-rc.d
 
+# enables modes
+a2enmod proxy_fcgi setenvif actions fcgid alias rewrite ssl
+
+
 
 # clone repo
 if [ -d "$INSTALL_DIR" ]; then
@@ -104,9 +108,6 @@ fi
 # ==========================================
 # BUILD CONFIGS ============================
 # ==========================================
-
-# enables modes
-a2enmod proxy_fcgi setenvif actions fcgid alias rewrite ssl
 
 # restart apache
 systemctl restart apache2.service
