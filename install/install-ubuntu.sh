@@ -124,8 +124,8 @@ FLUSH PRIVILEGES;
 exit;
 EOF
 
+cp -f $INSTALL_DIR/install/ubuntu/pma/apache.conf /etc/apache2/sites-available/
 $INSTALL_DIR/install/ubuntu/pma/installer.sh
-cp -f $INSTALL_DIR/install/ubuntu/pma/apache.conf /etc/phpmyadmin/
 
 $INSTALL_DIR/system/bin/add-host apachep.local 7.4
 
