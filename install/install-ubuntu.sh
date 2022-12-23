@@ -65,7 +65,7 @@ apt-get update
 # INSTALL APACHE & PHP =====================
 # ==========================================
 if ! which apache2 > /dev/null; then
-	apt-get install apache2 -y
+	apt-get install apache2 apache2.2-common apache2-suexec-custom apache2-utils -y
 	apt-get install php -y
 fi
 
@@ -135,11 +135,19 @@ EOF
 # INSTALL PHPMYADMIN =======================
 # ==========================================
 
-echo "phpmyadmin phpmyadmin/internal/skip-preseed boolean true" | debconf-set-selections
-echo "phpmyadmin phpmyadmin/reconfigure-webserver multiselect" | debconf-set-selections
-echo "phpmyadmin phpmyadmin/dbconfig-install boolean false" | debconf-set-selections
+# Disabling daemon autostart on apt-get install
+echo -e '#!/bin/sh\nexit 101' > /usr/sbin/policy-rc.d
+chmod a+x /usr/sbin/policy-rc.d
 
 apt install -y phpmyadmin
+
+# Restoring autostart policy
+rm -f /usr/sbin/policy-rc.d
+
+
+cp -f $INSTALL_DIR/install/ubuntu/pma/apache.conf /etc/phpmyadmin/
+ln -s /etc/phpmyadmin/apache.conf /etc/apache2/conf.d/phpmyadmin.conf
+
 
 # ==========================================
 # BUILD CONFIGS ============================
