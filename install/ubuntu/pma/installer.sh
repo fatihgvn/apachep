@@ -66,6 +66,14 @@ echo_fail()
 	fi
 	$SETCOLOR_NORMAL
 }
+check_option_empty()
+{
+	if [[ -z "$1" || "$1" =~ ^-.*$ ]]; then
+		echo_fail "$2" 1>&2
+		echo
+		exit 1
+	fi
+}
 
 # Default vars (don't change them)
 PMA_PATH="/usr/share/phpmyadmin"
