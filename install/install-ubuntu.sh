@@ -74,6 +74,9 @@ then
 	exit
 fi
 
+# Updating system
+apt-get update
+
 clear
 
 # enables modes
