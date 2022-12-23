@@ -14,7 +14,7 @@ fi
 
 GIT_REPO="https://github.com/fatihgvn/apachep.git"
 INSTALL_DIR="/usr/local/apachep"
-software="apache2 apache2-utils
+software="apache2
     php
 		mysql-client mysql-common mysql-server"
 
@@ -124,8 +124,8 @@ FLUSH PRIVILEGES;
 exit;
 EOF
 
-cp -f $INSTALL_DIR/install/ubuntu/pma/apache.conf /etc/apache2/sites-available/
-$INSTALL_DIR/install/ubuntu/pma/installer.sh
+cp -f $INSTALL_DIR/install/ubuntu/pma/phpmyadmin.conf /etc/apache2/conf-available/
+bash $INSTALL_DIR/install/ubuntu/pma/installer.sh
 
 $INSTALL_DIR/system/bin/add-host apachep.local 7.4
 
