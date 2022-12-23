@@ -66,56 +66,6 @@ echo_fail()
 	fi
 	$SETCOLOR_NORMAL
 }
-check_option_empty()
-{
-	if [[ -z "$1" || "$1" =~ ^-.*$ ]]; then
-		echo_fail "$2" 1>&2
-		echo
-		exit 1
-	fi
-}
-usage()
-{
-	echo "Usage: bash $0 [options]"
-	echo
-	echo "${BOLD_TEXT}Simple bash script for install and configure phpMyAdmin.${NORMAL_TEXT}"
-	echo "Script version: $(grep 'Version:\ ' "$0" | cut -d ' ' -f3)"
-	echo
-	echo "Options:"
-	echo
-	echo "    -h, --help              Shows this help."
-	echo
-	echo "    -p <dir>,               Specify full path to phpMyAdmin directory with "
-	echo "    --path=<dir>            or without slash in the end of path."
-	echo
-	echo "    -v <version>,           Specify version of phpMyAdmin to install "
-	echo "    --version=<version>     (ex.: ${BOLD_TEXT}4.8.3${NORMAL_TEXT}; default: ${BOLD_TEXT}latest${NORMAL_TEXT})."
-	echo
-	echo "    -e, --english-only      Install english version. By default version with all "
-	echo "                            language packs will be installed."
-	echo
-	echo "    -t <value>,             Specify TEMP_DIR constant value (ex.: "
-	echo "    --temp-dir=<value>      ${BOLD_TEXT}'/home/' . \\\$_SERVER['USER'] . '/tmp/'${NORMAL_TEXT}; php vars "
-	echo "                            must be escaped by backslash). Default value is "
-	echo "                            ${BOLD_TEXT}'./tmp/'${NORMAL_TEXT}. By default the script create ${BOLD_TEXT}tmp${NORMAL_TEXT} "
-	echo "                            directory in phpMyAdmin directory and "
-	echo "                            add ${BOLD_TEXT}777${NORMAL_TEXT} permissions if directory owner is "
-	echo "                            ${BOLD_TEXT}root:root${NORMAL_TEXT}."
-	echo
-	echo "    -u <user>,              Specify user of phpMyAdmin directory."
-	echo "    --user=<user>           By default user is inherited from parent directory owner."
-	echo
-	echo "    -g <group>,             Specify group of phpMyAdmin directory."
-	echo "    --group=<group>         By default group is inherited from parent directory owner."
-	echo
-	echo "    -f, --force             Force reinstall phpMyAdmin if current version already"
-	echo "                            installed."
-	echo
-	echo "    -q, --quiet             Execute the script without any users actions."
-	echo
-	echo "    -d, --debug             Show disabled output of commands."
-	echo
-}
 
 # Default vars (don't change them)
 PMA_PATH="/usr/share/phpmyadmin"
@@ -162,67 +112,6 @@ if [[ $UID != 0 ]]; then
 	echo_fail "You must run this script with sudo!" 1>&2
 	echo
 	exit 1
-fi
-
-# Get script options
-while 'true' ; do
-	if [ "${1#--path=}" != "$1" ] ; then
-		PMA_PATH="${1#--path=}"
-	elif [ "$1" = "-p" ] ; then
-		shift ; PMA_PATH="$1"
-
-	elif [ "${1#--version=}" != "$1" ] ; then
-		PMA_VERSION="${1#--version=}"
-	elif [ "$1" = "-v" ] ; then
-		shift ; PMA_VERSION="$1"
-
-	elif [ "${1#--temp-dir=}" != "$1" ] ; then
-		PMA_TEMP_DIR="${1#--temp-dir=}"
-	elif [ "$1" = "-t" ] ; then
-		shift ; PMA_TEMP_DIR="$1"
-
-	elif [ "${1#--user=}" != "$1" ] ; then
-		PMA_USER="${1#--user=}"
-		PMA_USER_OPTION="${1#--user=}"
-	elif [ "$1" = "-u" ] ; then
-		shift ; PMA_USER="$1" ; PMA_USER_OPTION="$1"
-
-	elif [ "${1#--group=}" != "$1" ] ; then
-		PMA_GROUP="${1#--group=}"
-		PMA_GROUP_OPTION="${1#--group=}"
-	elif [ "$1" = "-g" ] ; then
-		shift ; PMA_GROUP="$1" ; PMA_GROUP_OPTION="$1"
-
-	elif [[ "$1" = "--help" || "$1" = "-h" ]] ; then
-		HELP=1
-
-	elif [[ "$1" = "--english-only" || "$1" = "-e" ]] ; then
-		PMA_LANGUAGE="english"
-
-	elif [[ "$1" = "--force" || "$1" = "-f" ]] ; then
-		FORCE_INSTALL=1
-
-	elif [[ "$1" = "--quiet" || "$1" = "-q" ]] ; then
-		NO_ASK=1
-
-	elif [[ "$1" = "--debug" || "$1" = "-d" ]] ; then
-		DEBUG=1
-
-	elif [ -z "$1" ] ; then
-		break
-	else
-		echo_fail "Unknown key detected!" 1>&2
-		echo
-		usage
-		exit 1
-	fi
-	shift
-done
-
-# Help message
-if [ $HELP -eq 1 ]; then
-	usage
-	exit 0
 fi
 
 # Prepare some vars
@@ -363,28 +252,6 @@ if [ "$PMA_CURRENT_VERSION" = "$PMA_VERSION" ]; then
 fi
 
 echo
-
-# User action before install
-if [ $CRON_MODE -eq 0 ]; then
-	if [ $NO_ASK -eq 0 ]; then
-		echo "Please Select:"
-		echo
-		echo "1. Continue (default)"
-		echo "0. Exit"
-		echo
-		echo -n "Enter selection [1] > "
-		read -r item
-		case "$item" in
-			1) echo
-				;;
-			0) echo
-				exit 0
-				;;
-			*) echo
-				;;
-		esac
-	fi
-fi
 
 # Backup old version
 if [ $PMA_ISSET -eq 1 ]; then

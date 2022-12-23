@@ -15,7 +15,7 @@ fi
 GIT_REPO="https://github.com/fatihgvn/apachep.git"
 INSTALL_DIR="/usr/local/apachep"
 software="apache2
-    php
+    php php-mbstring gettext
 		mysql-client mysql-common mysql-server"
 
 phpfpm="php7.4 php7.4-fpm php7.4-mbstring php7.4-mysql php7.4-zip"
@@ -81,6 +81,7 @@ apt-get update
 
 # enables modes
 a2enmod proxy_fcgi setenvif actions fcgid alias rewrite ssl
+phpenmod mbstring
 
 clear
 
