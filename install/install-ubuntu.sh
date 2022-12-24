@@ -144,8 +144,10 @@ clear
 # echo 'PATH=$PATH:'$INSTALL_DIR'/system/bin' >> /root/.bashrc
 # source /root/.bash_profile
 
-echo 'export PATH=$PATH:'$INSTALL_DIR'/system/bin' >> /root/.bashrc
-echo 'export APACHEP='$INSTALL_DIR >> /root/.bashrc
+echo ''
+echo '############### APACHEP ###############'
+echo 'export PATH=$PATH:'$INSTALL_DIR'/system/bin' >> /etc/profile
+echo 'export APACHEP='$INSTALL_DIR >> /etc/profile
 
 # a-add-host apachep.local default
 
