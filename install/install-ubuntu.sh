@@ -135,12 +135,29 @@ apt install -y phpmyadmin
 echo "\$cfg['SendErrorReports'] = 'never';" >> /etc/phpmyadmin/config.inc.php
 bash $INSTALL_DIR/install/ubuntu/pma/updater.sh
 
-$INSTALL_DIR/system/bin/add-host apachep.local default
 
 clear
 
+# echo "export APACHEP='$INSTALL_DIR'" > /etc/profile.d/apachep.sh
+# chmod 755 /etc/profile.d/apachep.sh
+# source /etc/profile.d/apachep.sh
+# echo 'PATH=$PATH:'$INSTALL_DIR'/system/bin' >> /root/.bashrc
+# source /root/.bash_profile
+
+export PATH="$PATH:$INSTALL_DIR/system/bin"
+export APACHEP=$INSTALL_DIR
+
+# a-add-host apachep.local default
+
+
 echo "=================================================="
+echo "Installed Script"
+echo "Path: $INSTALL_DIR"
+echo "Bin Path: $INSTALL_DIR/system/bin"
+echo ""
 echo "Control Panel: http://apachep.local/"
+echo ""
+echo "PhpMyAdmin: http://localhost/phpmyadmin/"
 echo "Mysql User: root"
 echo "Mysql Password: $mysql_pass"
 echo "=================================================="
