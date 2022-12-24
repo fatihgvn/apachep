@@ -144,10 +144,10 @@ clear
 # echo 'PATH=$PATH:'$INSTALL_DIR'/system/bin' >> /root/.bashrc
 # source /root/.bash_profile
 
-echo ''
-echo '############### APACHEP ###############'
-echo 'export PATH=$PATH:'$INSTALL_DIR'/system/bin' >> /etc/profile
-echo 'export APACHEP='$INSTALL_DIR >> /etc/profile
+echo '' >> /home/$SUDO_USER/.bashrc
+echo '############### APACHEP ###############' >> /home/$SUDO_USER/.bashrc
+echo 'export PATH=$PATH:'$INSTALL_DIR'/system/bin' >> /home/$SUDO_USER/.bashrc
+echo 'export APACHEP='$INSTALL_DIR >> /home/$SUDO_USER/.bashrc
 
 # a-add-host apachep.local default
 
