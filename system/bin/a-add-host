@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/sudo bash
 
 # Arguments
 # add-host [domain] [phpversion]
