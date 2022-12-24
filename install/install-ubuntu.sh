@@ -138,16 +138,25 @@ bash $INSTALL_DIR/install/ubuntu/pma/updater.sh
 
 clear
 
-# echo "export APACHEP='$INSTALL_DIR'" > /etc/profile.d/apachep.sh
-# chmod 755 /etc/profile.d/apachep.sh
+
 # source /etc/profile.d/apachep.sh
 # echo 'PATH=$PATH:'$INSTALL_DIR'/system/bin' >> /root/.bashrc
 # source /root/.bash_profile
 
-echo '' >> ~/.profile
-echo '############### APACHEP ###############' >> ~/.profile
-echo 'export PATH=$PATH:'$INSTALL_DIR'/system/bin' >> ~/.profile
-echo 'export APACHEP='$INSTALL_DIR >> ~/.profile
+echo "export PATH=$PATH:'$INSTALL_DIR'/system/bin'" > /etc/profile.d/apachep.sh
+chmod 755 /etc/profile.d/apachep.sh
+source /etc/profile.d/apachep.sh
+
+echo 'export PATH=$PATH:'$INSTALL_DIR'/system/bin' >> /root/.bashrc
+source /root/.bash_profile
+
+# echo '' >> /home/$SUDO_USER/.profile
+# echo '############### APACHEP ###############' >> /home/$SUDO_USER/.profile
+# echo 'export PATH=$PATH:'$INSTALL_DIR'/system/bin' >> /home/$SUDO_USER/.profile
+# echo 'export APACHEP='$INSTALL_DIR >> /home/$SUDO_USER/.profile
+#
+# source /home/$SUDO_USER/.profile
+
 
 # a-add-host apachep.local default
 
