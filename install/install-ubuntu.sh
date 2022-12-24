@@ -138,23 +138,26 @@ bash $INSTALL_DIR/install/ubuntu/pma/updater.sh
 
 clear
 
-
-# source /etc/profile.d/apachep.sh
-# echo 'PATH=$PATH:'$INSTALL_DIR'/system/bin' >> /root/.bashrc
+# echo "export VESTA='$VESTA'" > /etc/profile.d/vesta.sh
+# chmod 755 /etc/profile.d/vesta.sh
+# source /etc/profile.d/vesta.sh
+# echo 'PATH=$PATH:'$VESTA'/bin' >> /root/.bash_profile
+# echo 'export PATH' >> /root/.bash_profile
 # source /root/.bash_profile
 
-echo "export PATH=$PATH:'$INSTALL_DIR'/system/bin'" > /etc/profile.d/apachep.sh
+
+echo "export APACHEP='$INSTALL_DIR/system/bin'" > /etc/profile.d/apachep.sh
 chmod 755 /etc/profile.d/apachep.sh
 source /etc/profile.d/apachep.sh
 
-echo 'export PATH=$PATH:'$INSTALL_DIR'/system/bin' >> /root/.bashrc
+echo 'PATH=$PATH:'$INSTALL_DIR'/system/bin' >> /root/.bash_profile
+echo 'export PATH' >> /root/.bash_profile
 source /root/.bash_profile
 
 # echo '' >> /home/$SUDO_USER/.profile
 # echo '############### APACHEP ###############' >> /home/$SUDO_USER/.profile
 # echo 'export PATH=$PATH:'$INSTALL_DIR'/system/bin' >> /home/$SUDO_USER/.profile
 # echo 'export APACHEP='$INSTALL_DIR >> /home/$SUDO_USER/.profile
-#
 # source /home/$SUDO_USER/.profile
 
 
