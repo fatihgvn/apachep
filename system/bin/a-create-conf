@@ -1,4 +1,4 @@
-#!/usr/bin/sudo bash
+#!/bin/bash
 
 # Arguments
 # create-conf [domain] [phpversion]
