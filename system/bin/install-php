@@ -24,3 +24,9 @@ then
 	echo "FPM version not found."
 	exit 1
 fi
+
+a2enmod "proxy_fcgi setenvif"
+a2enconf "php$1-fpm"
+
+# restart apache
+systemctl restart apache2.service
