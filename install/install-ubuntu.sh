@@ -153,20 +153,13 @@ echo "export APACHEP='$INSTALL_DIR'" > /etc/profile.d/apachep.sh
 chmod 755 /etc/profile.d/apachep.sh
 source /etc/profile.d/apachep.sh
 
-echo 'PATH=$PATH:'$INSTALL_DIR'/system/bin' >> /root/.bash_profile
-echo 'export PATH' >> /root/.bash_profile
-source /root/.bash_profile
+echo 'PATH=$PATH:'$INSTALL_DIR'/system/bin' >> /root/.bashrc
+echo 'export PATH' >> /root/.bashrc
+source /root/.bashrc
 
 echo 'PATH=$PATH:'$INSTALL_DIR'/system/bin' >> /home/$SUDO_USER/.bashrc
 echo 'export PATH' >> /home/$SUDO_USER/.bashrc
 source /home/$SUDO_USER/.bashrc
-
-
-# echo "export APACHEP='$INSTALL_DIR'" > /etc/profile.d/apachep.sh
-# echo "export APACHEP_BIN='$INSTALL_DIR/system/bin'" >> /etc/profile.d/apachep.sh
-# chmod 755 /etc/profile.d/apachep.sh
-# source /etc/profile.d/apachep.sh
-
 
 # a-add-host apachep.local default
 
