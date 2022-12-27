@@ -1,5 +1,6 @@
 # Created by vesta installer
-Defaults env_keep="APACHEP"
+Defaults env_keep="PATH"
+Defaults env_keep+="APACHEP"
 Defaults:admin !syslog
 Defaults:admin !requiretty
 Defaults:root !requiretty
