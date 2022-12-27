@@ -32,6 +32,8 @@ phpversion|Php version of virtual host|`php -v` to find out the default value
 *Use default PHP*
 > sudo apachep add-host test.local default
 
+-----
+
 #### create-conf
 Create configuration file for domain
 
@@ -51,6 +53,8 @@ phpversion|Php version of virtual host|`php -v` to find out the default value
 *Use default PHP*
 > sudo apachep create-conf test.local default
 
+-----
+
 #### create-ssl
 Create SSL for domain
 
@@ -67,6 +71,8 @@ password|Password for SSL|dummypassword
 *Use default password*
 > sudo apachep create-ssl test.local
 
+-----
+
 #### install-php
 Install new php fpm version
 
@@ -78,6 +84,7 @@ phpversion|PHP version to install|
 
 > sudo apachep install-php 7.4
 
+-----
 
 #### remove-host
 Remove an existing host
@@ -97,6 +104,8 @@ with-conf|Will the config file be removed as well?|`false` or `true` default is 
 
 *Remove host without configurations*
 > sudo apachep remove-host test.local false
+
+-----
 
 #### remove-conf
 Remove an existing host configuration files
