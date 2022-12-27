@@ -155,6 +155,8 @@ clear
 # source /root/.bash_profile
 
 echo "export APACHEP='$INSTALL_DIR'" > /etc/profile.d/apachep.sh
+echo "export APACHEP_BIN='$INSTALL_DIR/system/bin'" >> /etc/profile.d/apachep.sh
+echo "function apachep(){echo 'test'}" >> /etc/profile.d/apachep.sh
 chmod 755 /etc/profile.d/apachep.sh
 source /etc/profile.d/apachep.sh
 
