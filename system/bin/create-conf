@@ -15,7 +15,7 @@ fi
 
 conf_file=/usr/local/apachep/system/hosts/$domain.conf
 
-if [ $phpversion -eq 'default' ]
+if [ $phpversion = 'default' ]
 then
   cp /usr/local/apachep/system/templates/conf/default.template $conf_file
 else
