@@ -13,13 +13,13 @@ then
   phpversion=$2
 fi
 
-conf_file=$APACHEP/system/hosts/$domain.conf
+conf_file=/usr/local/apachep/system/hosts/$domain.conf
 
 if [ $phpversion -eq 'default' ]
 then
-  cp $APACHEP/system/templates/conf/default.template $conf_file
+  cp /usr/local/apachep/system/templates/conf/default.template $conf_file
 else
-  cp $APACHEP/system/templates/conf/default.fpm.template $conf_file
+  cp /usr/local/apachep/system/templates/conf/default.fpm.template $conf_file
 fi
 
 

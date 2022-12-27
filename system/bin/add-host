@@ -26,7 +26,7 @@ then
   mkdir $path/ssl
   mkdir $path/backups
 
-  cp -R $APACHEP/system/templates/public_html/* $path/public_html
+  cp -R /usr/local/apachep/system/templates/public_html/* $path/public_html
 
   chown -R $SUDO_USER $path
   chgrp -R www-data $path

@@ -3,14 +3,14 @@
 # Arguments
 # remove-conf [domain]
 
-if [ -f "$APACHEP/system/hosts/$1.conf" ]
+if [ -f "/usr/local/apachep/system/hosts/$1.conf" ]
 then
-  rm -v $APACHEP/system/hosts/$1.conf
+  rm -v /usr/local/apachep/system/hosts/$1.conf
   rm -v /etc/apache2/sites-available/$1.conf
 fi
 
-if [ -f "$APACHEP/system/hosts/ssl.$1.conf" ]
+if [ -f "/usr/local/apachep/system/hosts/ssl.$1.conf" ]
 then
-  rm -v $APACHEP/system/hosts/ssl.$1.conf
+  rm -v /usr/local/apachep/system/hosts/ssl.$1.conf
   rm -v /etc/apache2/sites-available/ssl.$1.conf
 fi
