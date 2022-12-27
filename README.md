@@ -2,12 +2,16 @@
 
 run install
 
-> bash -c "$(wget -O- https://raw.githubusercontent.com/fatihgvn/apachep/main/install/install-ubuntu.sh)"
+```
+bash -c "$(wget -O- https://raw.githubusercontent.com/fatihgvn/apachep/main/install/install-ubuntu.sh)"
+```
 
 # Commands
 
 General Usage
-> sudo apachep [method] [args...]
+```
+sudo apachep [method] [args...]
+```
 
 ## method list
 
@@ -24,13 +28,19 @@ phpversion|Php version of virtual host|`php -v` to find out the default value
 **example**
 
 *Use PHP 7.4*
-> sudo apachep add-host test.local 7.4
+```
+sudo apachep add-host test.local 7.4
+```
 
 *Use default PHP*
-> sudo apachep add-host test.local
+```
+sudo apachep add-host test.local
+```
 
 *Use default PHP*
-> sudo apachep add-host test.local default
+```
+sudo apachep add-host test.local default
+```
 
 -----
 
@@ -45,13 +55,19 @@ phpversion|Php version of virtual host|`php -v` to find out the default value
 **example**
 
 *Use PHP 7.4*
-> sudo apachep create-conf test.local 7.4
+```
+sudo apachep create-conf test.local 7.4
+```
 
 *Use default PHP*
-> sudo apachep create-conf test.local
+```
+sudo apachep create-conf test.local
+```
 
 *Use default PHP*
-> sudo apachep create-conf test.local default
+```
+sudo apachep create-conf test.local default
+```
 
 -----
 
@@ -66,10 +82,14 @@ password|Password for SSL|dummypassword
 **example**
 
 *Use own password*
-> sudo apachep create-ssl test.local mypassword
+```
+sudo apachep create-ssl test.local mypassword
+```
 
 *Use default password*
-> sudo apachep create-ssl test.local
+```
+sudo apachep create-ssl test.local
+```
 
 -----
 
@@ -82,7 +102,9 @@ phpversion|PHP version to install|
 
 **example**
 
-> sudo apachep install-php 7.4
+```
+sudo apachep install-php 7.4
+```
 
 -----
 
@@ -97,13 +119,19 @@ with-conf|Will the config file be removed as well?|`false` or `true` default is 
 **example**
 
 *Remove host with configurations*
-> sudo apachep remove-host test.local
+```
+sudo apachep remove-host test.local
+```
 
 *Remove host with configurations*
-> sudo apachep remove-host test.local true
+```
+sudo apachep remove-host test.local true
+```
 
 *Remove host without configurations*
-> sudo apachep remove-host test.local false
+```
+sudo apachep remove-host test.local false
+```
 
 -----
 
@@ -116,4 +144,6 @@ domain|Domain address to be removed|
 
 **example**
 
-> sudo apachep remove-conf test.local
+```
+sudo apachep remove-conf test.local
+```
