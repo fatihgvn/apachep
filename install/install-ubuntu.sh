@@ -152,7 +152,7 @@ echo 'PATH=$PATH:'$INSTALL_DIR'/system/bin' >> /home/$SUDO_USER/.bashrc
 echo 'export PATH' >> /home/$SUDO_USER/.bashrc
 source /home/$SUDO_USER/.bashrc
 
-cat << EOF
+echo $(cat << EOF
 #!/bin/bash
 
 cd $INSTALL_DIR/system/bin
