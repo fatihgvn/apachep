@@ -4,14 +4,14 @@ run install
 
 > bash -c "$(wget -O- https://raw.githubusercontent.com/fatihgvn/apachep/main/install/install-ubuntu.sh)"
 
-## Commands
+# Commands
 
 General Usage
 > sudo apachep [method] [args...]
 
-### method list
+## method list
 
-#### add-host
+### add-host
 Create a new virtual host.
 
 _Runs create-conf and create-ssl respectively_
@@ -34,7 +34,7 @@ phpversion|Php version of virtual host|`php -v` to find out the default value
 
 -----
 
-#### create-conf
+### create-conf
 Create configuration file for domain
 
 Argument|detail|default
@@ -55,7 +55,7 @@ phpversion|Php version of virtual host|`php -v` to find out the default value
 
 -----
 
-#### create-ssl
+### create-ssl
 Create SSL for domain
 
 Argument|detail|default
@@ -73,7 +73,7 @@ password|Password for SSL|dummypassword
 
 -----
 
-#### install-php
+### install-php
 Install new php fpm version
 
 Argument|detail|default
@@ -86,7 +86,7 @@ phpversion|PHP version to install|
 
 -----
 
-#### remove-host
+### remove-host
 Remove an existing host
 
 Argument|detail|default
@@ -107,7 +107,7 @@ with-conf|Will the config file be removed as well?|`false` or `true` default is 
 
 -----
 
-#### remove-conf
+### remove-conf
 Remove an existing host configuration files
 
 Argument|detail|default
