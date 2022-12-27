@@ -152,7 +152,7 @@ echo 'PATH=$PATH:'$INSTALL_DIR'/system/bin' >> /home/$SUDO_USER/.bashrc
 echo 'export PATH' >> /home/$SUDO_USER/.bashrc
 source /home/$SUDO_USER/.bashrc
 
-echo $(cat << EOF
+cat <<EOT >> /usr/bin/apachep
 #!/bin/bash
 
 cd $INSTALL_DIR/system/bin
@@ -164,7 +164,7 @@ fi
 
 bash $@
 
-EOF) >> /usr/bin/apachep
+EOT
 
 chmod +x /usr/bin/apachep
 
