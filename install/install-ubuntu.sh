@@ -142,9 +142,10 @@ clear
 # Installing sudo configuration
 mkdir -p /etc/sudoers.d
 cp -f $INSTALL_DIR/install/ubuntu/sudo/admin /etc/sudoers.d/$SUDO_USER
-chmod 440 /etc/sudoers.d/admin
-sed -i "s/admin/$SUDO_USER/" /etc/sudoers.d/$SUDO_USER
-sed -i "s/%admin.*ALL=(ALL).*/# sudo is limited to apachep scripts/" /etc/sudoers
+chmod 440 /etc/sudoers.d/$SUDO_USER
+sed -i "/admin/$SUDO_USER/" /etc/sudoers.d/$SUDO_USER
+sed -i "/INSTALLED_BIN/$INSTALL_DIR\/system\/bin\//" /etc/sudoers.d/$SUDO_USER
+sed -i "s/%$SUDO_USER.*ALL=(ALL).*/# sudo is limited to apachep scripts/" /etc/sudoers
 
 # Configuring system env
 echo "export APACHEP='$INSTALL_DIR'" > /etc/profile.d/apachep.sh

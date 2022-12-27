@@ -5,4 +5,4 @@ Defaults:admin !requiretty
 Defaults:root !requiretty
 
 # sudo is limited to vesta scripts
-admin   ALL=NOPASSWD:/usr/local/vesta/bin/*
+admin   ALL=NOPASSWD:INSTALLED_BIN*
