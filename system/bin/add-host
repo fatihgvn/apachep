@@ -15,7 +15,7 @@ fi
 
 echo $domain $port $phpversion
 
-a-create-conf $domain $phpversion
+apachep create-conf $domain $phpversion
 
 if [ ! -d "$path" ]
 then
@@ -32,7 +32,7 @@ then
   chgrp -R www-data $path
   chmod g+s $path
 
-  a-create-ssl $domain
+  apachep create-ssl $domain
 fi
 
 echo "127.0.0.1       $domain www.$domain" >> /etc/hosts

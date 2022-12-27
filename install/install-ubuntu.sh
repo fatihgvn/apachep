@@ -157,12 +157,12 @@ cat <<EOT >> /usr/bin/apachep
 
 cd $INSTALL_DIR/system/bin
 
-if [ ! -f "$1" ]; then
-    echo "$1 command not found"
-		exit 1
+if [ ! -f "\$1" ]; then
+	echo "\$1 command not found"
+	exit 1
 fi
 
-bash $@
+bash \$@
 
 EOT
 
