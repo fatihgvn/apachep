@@ -139,32 +139,26 @@ bash $INSTALL_DIR/install/ubuntu/pma/updater.sh
 
 clear
 
-# echo "export VESTA='$VESTA'" > /etc/profile.d/vesta.sh
-# chmod 755 /etc/profile.d/vesta.sh
-# source /etc/profile.d/vesta.sh
-# echo 'PATH=$PATH:'$VESTA'/bin' >> /root/.bash_profile
-# echo 'export PATH' >> /root/.bash_profile
-# source /root/.bash_profile
+# Installing sudo configuration
+mkdir -p /etc/sudoers.d
+cp -f $INSTALL_DIR/install/ubuntu/sudo/admin /etc/sudoers.d/$SUDO_USER
+chmod 440 /etc/sudoers.d/admin
+sed -i "s/admin/$SUDO_USER/" /etc/sudoers.d/$SUDO_USER
+sed -i "s/%admin.*ALL=(ALL).*/# sudo is limited to apachep scripts/" /etc/sudoers
 
-# echo "export APACHEP='$INSTALL_DIR'" > /etc/profile.d/apachep.sh
-# chmod 755 /etc/profile.d/apachep.sh
-# source /etc/profile.d/apachep.sh
-#
-# echo 'PATH=$PATH:'$INSTALL_DIR'/system/bin' >> /root/.bash_profile
-# echo 'export PATH' >> /root/.bash_profile
-# source /root/.bash_profile
-
+# Configuring system env
 echo "export APACHEP='$INSTALL_DIR'" > /etc/profile.d/apachep.sh
-echo "export APACHEP_BIN='$INSTALL_DIR/system/bin'" >> /etc/profile.d/apachep.sh
-echo "function apachep(){echo 'test'}" >> /etc/profile.d/apachep.sh
 chmod 755 /etc/profile.d/apachep.sh
 source /etc/profile.d/apachep.sh
+echo 'PATH=$PATH:'$INSTALL_DIR'/system/bin' >> /root/.bash_profile
+echo 'export PATH' >> /root/.bash_profile
+source /root/.bash_profile
 
-# echo '' >> /home/$SUDO_USER/.profile
-# echo '############### APACHEP ###############' >> /home/$SUDO_USER/.profile
-# echo 'export PATH=$PATH:'$INSTALL_DIR'/system/bin' >> /home/$SUDO_USER/.profile
-# echo 'export APACHEP='$INSTALL_DIR >> /home/$SUDO_USER/.profile
-# source /home/$SUDO_USER/.profile
+
+# echo "export APACHEP='$INSTALL_DIR'" > /etc/profile.d/apachep.sh
+# echo "export APACHEP_BIN='$INSTALL_DIR/system/bin'" >> /etc/profile.d/apachep.sh
+# chmod 755 /etc/profile.d/apachep.sh
+# source /etc/profile.d/apachep.sh
 
 
 # a-add-host apachep.local default
