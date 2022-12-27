@@ -6,7 +6,7 @@
 domain=$1
 path=/var/www/$domain
 port=80
-phpversion=7.4
+phpversion="default"
 
 if [ $# -eq 2 ]
 then
@@ -26,7 +26,7 @@ then
   mkdir $path/ssl
   mkdir $path/backups
 
-  cp -R /var/www/html/system/templates/public_html/* $path/public_html
+  cp -R $APACHEP/system/templates/public_html/* $path/public_html
 
   chown -R $SUDO_USER $path
   chgrp -R www-data $path

@@ -6,20 +6,20 @@
 domain=$1
 path=/var/www/$domain
 port=80
-phpversion=7.2
+phpversion="default"
 
 if [ $# -eq 2 ]
 then
   phpversion=$2
 fi
 
-conf_file=/usr/local/apachep/system/hosts/$domain.conf
+conf_file=$APACHEP/system/hosts/$domain.conf
 
 if [ $phpversion -eq 'default' ]
 then
-  cp /usr/local/apachep/system/templates/conf/default.template $conf_file
+  cp $APACHEP/system/templates/conf/default.template $conf_file
 else
-  cp /usr/local/apachep/system/templates/conf/default.fpm.template $conf_file
+  cp $APACHEP/system/templates/conf/default.fpm.template $conf_file
 fi
 
 
