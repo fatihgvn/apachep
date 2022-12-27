@@ -139,15 +139,6 @@ bash $INSTALL_DIR/install/ubuntu/pma/updater.sh
 
 clear
 
-# Installing sudo configuration
-mkdir -p /etc/sudoers.d
-cp -f $INSTALL_DIR/install/ubuntu/sudo/admin /etc/sudoers.d/$SUDO_USER
-chmod 440 /etc/sudoers.d/$SUDO_USER
-sed -i "s/admin/$SUDO_USER/" /etc/sudoers.d/$SUDO_USER
-echo "s/INSTALLEDBIN/${INSTALL_DIR//\//\\\/}/"
-sed -i "s/INSTALLEDBIN/${INSTALL_DIR//\//\\\/}/" /etc/sudoers.d/$SUDO_USER
-sed -i "s/%$SUDO_USER.*ALL=(ALL).*/# sudo is limited to apachep scripts/" /etc/sudoers
-
 # Configuring system env
 echo "export APACHEP='$INSTALL_DIR'" > /etc/profile.d/apachep.sh
 chmod 755 /etc/profile.d/apachep.sh
@@ -160,6 +151,22 @@ source /root/.bashrc
 echo 'PATH=$PATH:'$INSTALL_DIR'/system/bin' >> /home/$SUDO_USER/.bashrc
 echo 'export PATH' >> /home/$SUDO_USER/.bashrc
 source /home/$SUDO_USER/.bashrc
+
+cat << EOF
+#!/bin/bash
+
+cd $INSTALL_DIR/system/bin
+
+if [ ! -f "$1" ]; then
+    echo "$1 command not found"
+		exit 1
+fi
+
+bash $@
+
+EOF) >> /usr/bin/apachep
+
+chmod +x /usr/bin/apachep
 
 # a-add-host apachep.local default
 

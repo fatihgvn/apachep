@@ -1,9 +1,0 @@
-# Created by vesta installer
-Defaults env_keep="PATH"
-Defaults env_keep+="APACHEP"
-Defaults:admin !syslog
-Defaults:admin !requiretty
-Defaults:root !requiretty
-
-# sudo is limited to vesta scripts
-admin   ALL=NOPASSWD:INSTALLEDBIN/system/bin/*
