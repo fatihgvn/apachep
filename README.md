@@ -1,6 +1,31 @@
 # apachep
 
-run install
+Apacheap automatically installs the following packages on your linux system. It allows you to develop more than one project at the same time by dividing your web projects into virtual hosts in localhost. With the help of PHP-FPM, you can continue to develop your different projects in different versions with more than one php version at the same time.
+
+**Packages Used**
+```
+apache2
+php
+php-mbstring
+gettext
+mysql-client
+mysql-common
+mysql-server
+zip
+unzip
+net-tools
+```
+
+# Tested
+
+Linux|Version(s)|Result
+---|---|---
+Ubuntu|20.04, 22.04|Success
+Debian|-|-
+Centos|-|-
+
+
+# run install
 
 ```
 bash -c "$(wget -O- https://raw.githubusercontent.com/fatihgvn/apachep/main/install/install-ubuntu.sh)"
