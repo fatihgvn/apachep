@@ -13,39 +13,49 @@ locality="Turkey"
 organization="Hodein"
 organizationalunit="IT"
 #Optional for ssl
-password="dummypassword"
+password=""
 
 if [ $# -eq 2 ]
 then
   password=$2
 fi
 
+#Clear old files
+if test -f "$path/ssl/$domain.key"; then
+  echo "Clear old key file"
+  rm $path/ssl/$domain.key
+fi
+if test -f "$path/ssl/$domain.csr"; then
+  echo "Clear old csr file"
+  rm $path/ssl/$domain.csr
+fi
+if test -f "$path/ssl/$domain.crt"; then
+  echo "Clear old crt file"
+  rm $path/ssl/$domain.crt
+fi
+
+if ! test -d "/usr/local/share/ca-certificates/"; then
+  mkdir /usr/local/share/ca-certificates/
+fi
+
+echo "$password" > $path/ssl/password
+
 #Generate a key
-echo "Generating key request for $domain"
-openssl genrsa -des3 -passout pass:$password -out $path/ssl/server.key 2048
+echo "Generating key request for $domain [passwd: $password]"
+openssl genrsa -des3 -passout pass:$password -out $path/ssl/$domain.key 2048
 
 #Remove passphrase from the key. Comment the line out to keep the passphrase
 echo "Removing passphrase from key"
-openssl rsa -in $path/ssl/server.key -passin pass:$password -out $path/ssl/server.key
+openssl rsa -inform DER -in $path/ssl/$domain.key -passin pass:$password -out $path/ssl/$domain.key
 
 #Create the request
 echo "Creating CSR"
-openssl req -new -key $path/ssl/server.key -out $path/ssl/server.csr -passin pass:$password \
-	-subj "/C=$country/ST=$state/L=$locality/O=$organization/OU=$organizationalunit/CN=$commonname/emailAddress=admin@$domain"
+openssl req -new -key $path/ssl/$domain.key -out $path/ssl/$domain.csr -passin pass:$password \
+	-subj "/C=$country/ST=$state/L=$locality/O=$organization/OU=$organizationalunit/CN=$domain/CN=www.$domain/emailAddress=admin@$domain"
 
-openssl x509 -in $path/ssl/server.csr -out $path/ssl/server.crt -req -signkey $path/ssl/server.key -days 365
+openssl x509 -in $path/ssl/$domain.csr -out $path/ssl/$domain.crt -req -signkey $path/ssl/$domain.key -days 365 -passin pass:$password
 
-# echo "---------------------------"
-# echo "-----Below is your CSR-----"
-# echo "---------------------------"
-# echo
-# cat $path/ssl/server.csr
-#
-# echo
-# echo "---------------------------"
-# echo "-----Below is your Key-----"
-# echo "---------------------------"
-# echo
-# cat $path/ssl/server.key
+chmod 700 $path/ssl/$domain.*
 
-chmod 400 $path/ssl/server.*
+echo "Restarting apache..."
+systemctl restart apache2.service

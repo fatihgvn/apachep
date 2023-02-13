@@ -16,9 +16,9 @@
   </FilesMatch>
 
   SSLEngine on
-  SSLCertificateFile {{path}}/ssl/server.crt
-  SSLCertificateKeyFile {{path}}/ssl/server.key
-  SSLCertificateChainFile {{path}}/ssl/server.crt
+  SSLCertificateFile {{path}}/ssl/{{host}}.crt
+  SSLCertificateKeyFile {{path}}/ssl/{{host}}.key
+  SSLCertificateChainFile {{path}}/ssl/{{host}}.crt
 
   # Possible values include: debug, info, notice, warn, error, crit, alert, emerg.
   LogLevel warn
