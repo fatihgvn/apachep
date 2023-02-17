@@ -1,0 +1,8 @@
+[{{name}}]
+host={{host}}
+protocol={{protocol}}
+port={{port}}
+username={{username}}
+password={{password}}
+remotepath={{remotepath}}
+
