@@ -1,0 +1,137 @@
+#!/bin/bash
+
+# Arguments
+# connect-ftp [domain] [name] [host] [username] [password] [protocol:ftp] [port:21] [remotepath:/]
+
+domain=$1
+path=/var/www/$domain
+
+if [ $# -lt 5 ]
+then
+    echo "Example usage: "
+    echo "connect-ftp [domain] [name] [host] [username] [password] [protocol:ftp] [port:21] [remotepath:/]"
+    exit 1
+fi
+
+ftpfile="$path/conf/ftp.conf"
+ftpfile_temp="$path/temp/ftp.conf"
+
+cp /usr/local/apachep/system/templates/conf/ftp.template $ftpfile_temp
+
+name=$2
+host=$3
+username=$4
+password=$5
+
+protocol='ftp'
+port='21'
+remotepath='/'
+
+if [ $# -ge 6 ]
+then
+    protocol=$6
+fi
+
+if [ $# -ge 7 ]
+then
+    port=$7
+fi
+
+if [ $# -eq 8 ]
+then
+    remotepath=$8
+fi
+
+remotepath_sed=$(echo $remotepath | sed 's_/_\\/_g')
+
+sed -i "s/{{name}}/$name/g" $ftpfile_temp
+sed -i "s/{{host}}/$host/g" $ftpfile_temp
+sed -i "s/{{protocol}}/$protocol/g" $ftpfile_temp
+sed -i "s/{{port}}/$port/g" $ftpfile_temp
+sed -i "s/{{username}}/$username/g" $ftpfile_temp
+sed -i "s/{{password}}/$password/g" $ftpfile_temp
+sed -i "s/{{remotepath}}/$remotepath_sed/g" $ftpfile_temp
+
+# Get INI section
+ReadINISections(){
+  local filename="$1"
+  gawk '{ if ($1 ~ /^\[/) section=tolower(gensub(/\[(.+)\]/,"\\1",1,$1)); configuration[section]=1 } END {for (key in configuration) { print key} }' ${filename}
+}
+
+# Get/Set all INI sections
+GetINISections(){
+  local filename="$1"
+
+  sections="$(ReadINISections $filename)"
+  for section in $sections; do
+    array_name="configuration_${section}"
+    declare -g -A ${array_name}
+  done
+  eval $(gawk -F= '{ 
+                    if ($1 ~ /^\[/) 
+                      section=tolower(gensub(/\[(.+)\]/,"\\1",1,$1)) 
+                    else if ($1 !~ /^$/ && $1 !~ /^;/) {
+                      gsub(/^[ \t]+|[ \t]+$/, "", $1); 
+                      gsub(/[\[\]]/, "", $1);
+                      gsub(/^[ \t]+|[ \t]+$/, "", $2); 
+                      if (configuration[section][$1] == "")  
+                        configuration[section][$1]=$2
+                      else
+                        configuration[section][$1]=configuration[section][$1]" "$2} 
+                    } 
+                    END {
+                      for (section in configuration)    
+                        for (key in configuration[section]) { 
+                          section_name = section
+                          gsub( "-", "_", section_name)
+                          print "configuration_" section_name "[\""key"\"]=\""configuration[section][key]"\";"                        
+                        }
+                    }' ${filename}
+        )
+
+
+}
+
+GetINISections "$ftpfile_temp"
+
+for section in $(ReadINISections "${ftpfile_temp}"); do
+    echo "Running test for ${section}..."
+
+    echo "  host        $(eval echo $\{configuration_${section}[host]\})"
+    echo "  protocol    $(eval echo $\{configuration_${section}[protocol]\})"
+    echo "  port        $(eval echo $\{configuration_${section}[port]\})"
+    echo "  username    $(eval echo $\{configuration_${section}[username]\})"
+    echo "  password    $(eval echo $\{configuration_${section}[password]\})"
+    echo "  remotepath  $(eval echo $\{configuration_${section}[remotepath]\})"
+
+    host=$(eval echo $\{configuration_${section}[host]\})
+    protocol=$(eval echo $\{configuration_${section}[protocol]\})
+    port=$(eval echo $\{configuration_${section}[port]\})
+    username=$(eval echo $\{configuration_${section}[username]\})
+    password=$(eval echo $\{configuration_${section}[password]\})
+    remotepath=$(eval echo $\{configuration_${section}[remotepath]\})
+
+    ftp_output="$(ftp -inv $host <<EOF
+    user $username $password
+    cd $remotepath
+    bye
+EOF
+)"
+
+    echo "$ftp_output"
+    if ( echo "$ftp_output" |grep -q 'authentication failed' )
+    then
+        echo "Failed to connect to ftp host"
+        rm $ftpfile_temp
+        exit 1
+    else
+        echo "Connection successfuly"
+        echo "Applying settings..."
+
+        echo "$(cat $ftpfile_temp)" >> $ftpfile
+        rm $ftpfile_temp
+        echo "OK"
+    fi
+
+done
+
