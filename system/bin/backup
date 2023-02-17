@@ -1,0 +1,28 @@
+#!/bin/bash
+
+# Arguments
+# backup [domain]
+
+domain=$1
+path=/var/www/$domain
+
+zip_name="$domain.$(date +"%Y%m%d-%H%M%S").backup.zip"
+zip_path="$path/backups/$zip_name"
+
+# Backup public_html
+cd $path
+zip -r "$zip_path" public_html private
+
+cd $path/temp
+
+# Backup configs
+mkdir conf
+cp -p /usr/local/apachep/system/hosts/$domain.conf conf
+zip -ur "$zip_path" conf
+rm -rf conf
+
+# Backup domain name
+echo "$domain" > domain.txt
+zip -ur "$zip_path" domain.txt
+
+echo "$zip_path"
