@@ -1,0 +1,52 @@
+#!/bin/bash
+
+# Arguments
+# restore [file]
+
+file="$USER_PATH/$1"
+
+if ! test -f "$file"; then
+    echo "$file file not found"
+    exit 1
+fi
+
+echo "Extraction becup files..."
+
+if test -d '/tmp/apachep'; then
+    rm -rf /tmp/apachep
+fi
+
+mkdir /tmp/apachep
+unzip "$file" -d /tmp/apachep
+
+domain="$(cat /tmp/apachep/domain.txt)"
+
+echo "$domain restoring"
+
+if ! test -d "/var/www/$domain"; then
+    apachep add-host $domain default
+fi
+
+echo "Changing configuration file for VirtualHost in Apache..."
+cp "/tmp/apachep/public_html/$domian.conf" "usr/local/apachep/system/hosts/$domian.conf"
+cp "/tmp/apachep/public_html/ssl.$domian.conf" "usr/local/apachep/system/hosts/ssl.$domian.conf"
+
+echo "copying public_html..."
+cp -avr "/tmp/apachep/public_html" "/var/www/$domain"
+
+echo "copying private..."
+cp -avr "/tmp/apachep/private" "/var/www/$domain"
+
+# Fix user permissions
+echo "Changing files permissions..."
+chown -R $SUDO_USER "/var/www/$domain"
+chgrp -R www-data "/var/www/$domain"
+chmod g+s "/var/www/$domain"
+
+echo "removeing temp files..."
+rm -rf /tmp/apachep
+
+echo "Restarting Apache service..."
+systemctl restart apache2.service
+
+echo "OK"
