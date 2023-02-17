@@ -155,6 +155,8 @@ source /home/$SUDO_USER/.bashrc
 cat <<EOT >> /usr/bin/apachep
 #!/bin/bash
 
+USER_PATH="\$(pwd)"
+
 cd $INSTALL_DIR/system/bin
 
 if [ ! -f "\$1" ]; then
@@ -162,7 +164,7 @@ if [ ! -f "\$1" ]; then
 	exit 1
 fi
 
-bash \$@
+export USER_PATH && bash \$@
 
 EOT
 
