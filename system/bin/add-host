@@ -25,6 +25,8 @@ then
   mkdir $path/temp
   mkdir $path/ssl
   mkdir $path/backups
+  mkdir $path/conf
+  mkdir $path/private
 
   cp -R /usr/local/apachep/system/templates/public_html/* $path/public_html
 
@@ -35,7 +37,10 @@ then
   apachep create-ssl $domain
 fi
 
-echo "127.0.0.1       $domain www.$domain" >> /etc/hosts
+if [ ! -n "$(grep $domain /etc/hosts)" ]
+then
+  echo "127.0.0.1       $domain www.$domain" >> /etc/hosts
+fi
 
 a2ensite $domain.conf
 
