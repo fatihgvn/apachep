@@ -17,7 +17,8 @@ INSTALL_DIR="/usr/local/apachep"
 software="apache2
     php php-mbstring gettext
 		mysql-client mysql-common mysql-server
-		zip unzip net-tools"
+		zip unzip net-tools
+    postgresql postgresql-contrib phppgadmin"
 
 phpfpm="php7.4 php7.4-fpm php7.4-mbstring php7.4-mysql php7.4-zip"
 
@@ -115,6 +116,7 @@ fi
 # restart apache
 systemctl restart apache2.service
 
+# Mysql setup
 mysql_pass=$(gen_pass)
 echo "root:$mysql_pass" > $INSTALL_DIR/system/mysql.passwd
 
@@ -136,6 +138,20 @@ apt install -y phpmyadmin
 echo "\$cfg['SendErrorReports'] = 'never';" >> /etc/phpmyadmin/config.inc.php
 bash $INSTALL_DIR/install/ubuntu/pma/updater.sh
 
+# Postgresql setup
+postgresql_pass=$(gen_pass)
+echo "postgres:$postgresql_pass" > $INSTALL_DIR/system/postgresql.passwd
+
+if ! grep -q "#Require Local" /etc/apache2/conf-available/phppgadmin.conf; then
+  sed -i '/Require Local/ {s/^/# /; N; s/\n/\nAllow from all\n/}' /etc/apache2/conf-available/phppgadmin.conf
+fi
+
+systemctl restart apache2.service
+systemctl restart postgresql.service
+
+# sed -i "s/\$conf\['extra_login_security'\] = true;/\$conf\['extra_login_security'\] = false;/g" /etc/phppgadmin/config.inc.php
+
+postgres -c "psql -U postgres -d postgres -c \"alter user postgres with password '$postgresql_pass';\""
 
 clear
 
@@ -183,4 +199,8 @@ echo ""
 echo "PhpMyAdmin: http://localhost/phpmyadmin/"
 echo "Mysql User: root"
 echo "Mysql Password: $mysql_pass"
+echo ""
+echo "PhpPgAdmin: http://localhost/phppgadmin/"
+echo "PG User: postgres"
+echo "PG Password: $postgresql_pass"
 echo "=================================================="
