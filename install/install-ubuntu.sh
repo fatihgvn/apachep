@@ -151,7 +151,13 @@ systemctl restart postgresql.service
 
 sed -i "s/\$conf\['extra_login_security'\] = true;/\$conf\['extra_login_security'\] = false;/g" /etc/phppgadmin/config.inc.php
 
-postgres -c "psql -U postgres -d postgres -c \"alter user postgres with password '$postgresql_pass';\""
+su - postgres <<EOF
+psql <<EOF_SQL
+ALTER USER postgres WITH PASSWORD '$postgresql_pass';
+\q
+EOF_SQL
+exit
+EOF
 
 clear
 
