@@ -149,7 +149,7 @@ fi
 systemctl restart apache2.service
 systemctl restart postgresql.service
 
-# sed -i "s/\$conf\['extra_login_security'\] = true;/\$conf\['extra_login_security'\] = false;/g" /etc/phppgadmin/config.inc.php
+sed -i "s/\$conf\['extra_login_security'\] = true;/\$conf\['extra_login_security'\] = false;/g" /etc/phppgadmin/config.inc.php
 
 postgres -c "psql -U postgres -d postgres -c \"alter user postgres with password '$postgresql_pass';\""
 
