@@ -111,8 +111,16 @@ if [[ $? -ne 0 ]]; then
 fi
 
 # Enable Apache modules and PHP extensions.
-a2enmod proxy_fcgi setenvif actions fcgid alias rewrite ssl
-phpenmod mbstring
+# Enable Apache modules individually with error handling.
+a2enmod proxy_fcgi  || echo "Module proxy_fcgi not found, skipping..."
+a2enmod setenvif    || echo "Module setenvif not found, skipping..."
+a2enmod actions     || echo "Module actions not found, skipping..."
+a2enmod fcgid       || echo "Module fcgid not found, skipping..."
+a2enmod alias       || echo "Module alias not found, skipping..."
+a2enmod rewrite     || echo "Module rewrite not found, skipping..."
+a2enmod ssl         || echo "Module ssl not found, skipping..."
+
+phpenmod mbstring || echo "PHP module mbstring not found, skipping..."
 
 # Clear the terminal (optional).
 clear
