@@ -250,7 +250,7 @@ config_file="$INSTALL_DIR/system/hosts/${apachep_domain}.conf"
 # Override the document root in the configuration file to INSTALL_DIR.
 # The template contains a placeholder {{path}}, which is replaced here.
 escaped_install_dir=$(echo "$INSTALL_DIR" | sed 's_/_\\/_g')
-sed -i "s/{{path}}/$escaped_install_dir/g" "$config_file"
+sed -i "s/\/var\/www\/apachep\.$DOMAIN\/public_html/$escaped_install_dir/g" "$config_file"
 
 # Copy the modified configuration file to Apache's sites-available directory.
 cp "$config_file" /etc/apache2/sites-available
