@@ -1,129 +1,153 @@
 #!/bin/bash
+set -e
 
-# A VirtualHost manager for Apache 2.4.41, tested on Ubuntu 20.04 LTS
-
+# Check if the script is run as root.
 if [ "$(id -u)" != 0 ]; then
-	echo "You must be root or use sudo"
-	exit 1
+  echo "You must be root or use sudo."
+  exit 1
 fi
 
-if ! which git > /dev/null; then
-	echo -e "You must install git first\n	sudo apt-get install git"
-	exit 1
+# Process command-line arguments.
+# If the --domain parameter is provided, set DOMAIN to its value; otherwise, use the default "dev".
+DOMAIN="dev"  # Default value for domain
+DNSMASQ_FLAG=false  # Default value for dnsmasq flag (false)
+while [[ "$#" -gt 0 ]]; do
+  case $1 in
+    --domain)
+      DOMAIN="$2"
+      shift 2
+      ;;
+    --dnsmasq)
+      DNSMASQ_FLAG=true
+      shift 1
+      ;;
+    *)
+      echo "Unknown parameter passed: $1"
+      exit 1
+      ;;
+  esac
+done
+
+echo "Using domain extension: .$DOMAIN"
+if $DNSMASQ_FLAG; then
+  echo "DNSMASQ installation flag is enabled."
+fi
+
+# Ensure git is installed.
+if ! command -v git > /dev/null; then
+  echo -e "You must install git first.\n\tsudo apt-get install git"
+  exit 1
 fi
 
 GIT_REPO="https://github.com/fatihgvn/apachep.git"
 INSTALL_DIR="/usr/local/apachep"
-software="apache2
-    php php-mbstring gettext
-		mysql-client mysql-common mysql-server
-		zip unzip net-tools
-    postgresql postgresql-contrib phppgadmin"
-
-phpfpm="php7.4 php7.4-fpm php7.4-mbstring php7.4-mysql php7.4-zip"
+software="apache2 php php-mbstring gettext mysql-client mysql-common mysql-server zip unzip net-tools postgresql postgresql-contrib phppgadmin"
 
 ############################################
 ###############  Functions  ################
 ############################################
 
-# Defining password-gen function
+# Function to generate a random password.
 gen_pass() {
     MATRIX='0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz'
     LENGTH=10
-    while [ ${n:=1} -le $LENGTH ]; do
-        PASS="$PASS${MATRIX:$(($RANDOM%${#MATRIX})):1}"
-        let n+=1
+    PASS=""
+    for (( n=1; n<=LENGTH; n++ )); do
+        PASS="$PASS${MATRIX:$(( RANDOM % ${#MATRIX} )):1}"
     done
     echo "$PASS"
 }
 
+# Function to add a repository if not already present.
 add_repository(){
   local exist_repo=0
-
-  for APT in `find /etc/apt/ -name \*.list`; do
-    while read ENTRY ; do
-      HOST=`echo $ENTRY | cut -d/ -f3`
-      USER=`echo $ENTRY | cut -d/ -f4`
-      PPA=`echo $ENTRY | cut -d/ -f5`
-
+  for APT in $(find /etc/apt/ -name "*.list"); do
+    while read -r ENTRY; do
+      HOST=$(echo "$ENTRY" | cut -d/ -f3)
+      USER=$(echo "$ENTRY" | cut -d/ -f4)
+      PPA=$(echo "$ENTRY" | cut -d/ -f5)
       if [ "ppa:$USER/$PPA" = "$1" ]; then
-        echo "ppa:$USER/$PPA already added"
+        echo "Repository $1 already added."
         exist_repo=1
-        break
+        break 2
       fi
-    done <<< $(grep -Po "(?<=^deb\s).*?(?=#|$)" $APT)
+    done <<< "$(grep -Po '(?<=^deb\s).*?(?=#|$)' "$APT")"
   done
-
   if [[ $exist_repo -eq 0 ]]; then
-    echo apt-add-repository $1 -y
-    apt-add-repository $1 -y
+    echo "Adding repository $1"
+    apt-add-repository "$1" -y
   fi
+}
+
+# Function to get the system's primary IP address.
+get_system_ip() {
+    hostname -I | awk '{print $1}'
 }
 
 ############################################
 ################  Install  #################
 ############################################
 
-# add repostories
-add_repository ppa:ondrej/php
-
-# Updating system
-apt-get update
-
-# Installing apt packages
-apt-get -y install $software
-if [[ $? > 0 ]]
-then
-	echo "The command failed, exiting."
-	exit
+# Retrieve the system's IP address.
+SYSTEM_IP=$(get_system_ip)
+if [ -z "$SYSTEM_IP" ]; then
+    echo "Failed to retrieve system IP. Exiting."
+    exit 1
 fi
 
-# Updating system
+echo "System IP: $SYSTEM_IP"
+
+# Add necessary repositories.
+add_repository ppa:ondrej/php
+
+# Update package lists.
 apt-get update
 
-# enables modes
+# Install required packages.
+apt-get -y install $software
+if [[ $? -ne 0 ]]; then
+  echo "Package installation failed. Exiting."
+  exit 1
+fi
+
+# Enable Apache modules and PHP extensions.
 a2enmod proxy_fcgi setenvif actions fcgid alias rewrite ssl
 phpenmod mbstring
 
+# Clear the terminal (optional).
 clear
 
-# clone repo
+# Clone the repository.
 if [ -d "$INSTALL_DIR" ]; then
-	rm -rf $INSTALL_DIR
+  rm -rf "$INSTALL_DIR"
 fi
-git clone $GIT_REPO $INSTALL_DIR
+git clone "$GIT_REPO" "$INSTALL_DIR"
 
-chown -R $SUDO_USER $INSTALL_DIR
-chgrp -R www-data $INSTALL_DIR
-chmod g+s $INSTALL_DIR
+# Set proper ownership and permissions.
+chown -R www-data:www-data "$INSTALL_DIR"
+chmod g+s "$INSTALL_DIR"
 
-chown -R $SUDO_USER $INSTALL_DIR
-chgrp -R www-data $INSTALL_DIR
-chmod g+s $INSTALL_DIR
-
-echo " " >> /etc/hosts
-echo "# apachep hosts" >> /etc/hosts
-echo "127.0.0.1			apachep.local www.apachep.local" >> /etc/hosts
-
-if [/usr/bin/find /etc/apache2/apache2.conf -type f -exec grep -Hn "apachep\/system\/hosts\/\*\.conf" {}]; then
-	sed -i "/IncludeOptional\ mods\-enabled\/\*\.conf/a IncludeOptional $INSTALL_DIR/system/hosts/*.conf" /etc/apache2/apache2.conf
+# Optional: Append IncludeOptional directive in Apache configuration if needed.
+if /usr/bin/find /etc/apache2/apache2.conf -type f -exec grep -Hn "apachep/system/hosts/\*\.conf" {} \; ; then
+  sed -i "/IncludeOptional mods-enabled\/\*\.conf/a IncludeOptional $INSTALL_DIR/system/hosts/*.conf" /etc/apache2/apache2.conf
 fi
 
-# ==========================================
-# BUILD CONFIGS ============================
-# ==========================================
-
-# restart apache
+# Restart Apache to load new configurations.
 systemctl restart apache2.service
 
-# Mysql setup
-mysql_pass=$(gen_pass)
-echo "root:$mysql_pass" > $INSTALL_DIR/system/mysql.passwd
+# If DNSMASQ_FLAG is true, run the dnsmasq installation script.
+if $DNSMASQ_FLAG; then
+  echo "Running dnsmasq installation script..."
+  bash "$INSTALL_DIR/install/ubuntu/dnsmasq/install.sh"
+fi
 
-mysql << EOF
+# MySQL setup.
+mysql_pass=$(gen_pass)
+echo "root:$mysql_pass" > "$INSTALL_DIR/system/mysql.passwd"
+
+mysql <<EOF
 ALTER USER 'root'@'localhost' IDENTIFIED WITH mysql_native_password BY '$mysql_pass';
 FLUSH PRIVILEGES;
-exit;
 EOF
 
 debconf-set-selections <<< "phpmyadmin phpmyadmin/reconfigure-webserver multiselect apache2"
@@ -133,14 +157,14 @@ debconf-set-selections <<< "phpmyadmin phpmyadmin/mysql/admin-pass password $mys
 debconf-set-selections <<< "phpmyadmin phpmyadmin/mysql/app-pass password $mysql_pass"
 debconf-set-selections <<< "phpmyadmin phpmyadmin/app-password-confirm password $mysql_pass"
 
-apt install -y phpmyadmin
+apt-get install -y phpmyadmin
 
 echo "\$cfg['SendErrorReports'] = 'never';" >> /etc/phpmyadmin/config.inc.php
-bash $INSTALL_DIR/install/ubuntu/pma/updater.sh
+bash "$INSTALL_DIR/install/ubuntu/pma/updater.sh"
 
-# Postgresql setup
+# PostgreSQL setup.
 postgresql_pass=$(gen_pass)
-echo "postgres:$postgresql_pass" > $INSTALL_DIR/system/postgresql.passwd
+echo "postgres:$postgresql_pass" > "$INSTALL_DIR/system/postgresql.passwd"
 
 if ! grep -q "#Require Local" /etc/apache2/conf-available/phppgadmin.conf; then
   sed -i '/Require Local/ {s/^/# /; N; s/\n/\nAllow from all\n/}' /etc/apache2/conf-available/phppgadmin.conf
@@ -159,54 +183,99 @@ EOF_SQL
 exit
 EOF
 
+# Clear the terminal (optional).
 clear
 
-# Configuring system env
+# Configure system environment variable for Apachep.
 echo "export APACHEP='$INSTALL_DIR'" > /etc/profile.d/apachep.sh
 chmod 755 /etc/profile.d/apachep.sh
 source /etc/profile.d/apachep.sh
 
-echo 'PATH=$PATH:'$INSTALL_DIR'/system/bin' >> /root/.bashrc
-echo 'export PATH' >> /root/.bashrc
-source /root/.bashrc
+# Add Apachep bin directory to the PATH via profile.d.
+echo "PATH=\$PATH:$INSTALL_DIR/system/bin" >> /etc/profile.d/apachep.sh
+source /etc/profile.d/apachep.sh
 
-echo 'PATH=$PATH:'$INSTALL_DIR'/system/bin' >> /home/$SUDO_USER/.bashrc
-echo 'export PATH' >> /home/$SUDO_USER/.bashrc
-source /home/$SUDO_USER/.bashrc
-
-cat <<EOT >> /usr/bin/apachep
+# Create a command wrapper for Apachep in /usr/bin.
+cat <<EOT > /usr/bin/apachep
 #!/bin/bash
-
+# Change to Apachep bin directory and execute the given command.
 USER_PATH="\$(pwd)"
-
 cd $INSTALL_DIR/system/bin
-
 if [ ! -f "\$1" ]; then
-	echo "\$1 command not found"
-	exit 1
+  echo "\$1 command not found"
+  exit 1
 fi
-
 export USER_PATH && bash \$@
-
 EOT
 
 chmod +x /usr/bin/apachep
 
-# a-add-host apachep.local default
+# Save the domain extension to a file for use in other scripts.
+echo "$DOMAIN" > "$INSTALL_DIR/.domain"
+
+# Save the detected system IP address to a file for use in other scripts.
+echo "$SYSTEM_IP" > "$INSTALL_DIR/.ip"
 
 
-echo "=================================================="
-echo "Installed Script"
-echo "Path: $INSTALL_DIR"
-echo "Bin Path: $INSTALL_DIR/system/bin"
-echo ""
-echo "Control Panel: http://apachep.local/"
-echo ""
-echo "PhpMyAdmin: http://localhost/phpmyadmin/"
-echo "Mysql User: root"
-echo "Mysql Password: $mysql_pass"
-echo ""
-echo "PhpPgAdmin: http://localhost/phppgadmin/"
-echo "PG User: postgres"
-echo "PG Password: $postgresql_pass"
-echo "=================================================="
+# --------------------------------------------------
+# Create a special site for the "apachep" domain
+# This site will use INSTALL_DIR as its document root.
+# --------------------------------------------------
+
+# Read stored system IP from INSTALL_DIR (if exists), else default.
+if [ -f "$INSTALL_DIR/.ip" ]; then
+  system_ip=$(cat "$INSTALL_DIR/.ip")
+else
+  system_ip="127.0.0.1"
+fi
+
+# Compose the full domain name for the apachep site.
+apachep_domain="apachep.$DOMAIN"
+echo "Creating site for domain: $apachep_domain with document root: $INSTALL_DIR"
+
+# Create Apache configuration for the apachep domain.
+apachep create-conf "$apachep_domain" "default"
+
+# Path to the generated Apache configuration file.
+config_file="$INSTALL_DIR/system/hosts/${apachep_domain}.conf"
+
+# Override the document root in the configuration file to INSTALL_DIR.
+# The template contains a placeholder {{path}}, which is replaced here.
+escaped_install_dir=$(echo "$INSTALL_DIR" | sed 's_/_\\/_g')
+sed -i "s/{{path}}/$escaped_install_dir/g" "$config_file"
+
+# Copy the modified configuration file to Apache's sites-available directory.
+cp "$config_file" /etc/apache2/sites-available
+
+# Update /etc/hosts if the apachep domain entry is not present.
+if ! grep -q "$apachep_domain" /etc/hosts; then
+  echo "$system_ip       $apachep_domain www.$apachep_domain" >> /etc/hosts
+fi
+
+# Enable the site configuration and restart Apache.
+a2ensite "$apachep_domain.conf"
+systemctl restart apache2.service
+
+
+
+# Final installation summary.
+FINAL_SUMMARY="/final_installation_summary.txt"
+cat <<EOT > "$FINAL_SUMMARY"
+==================================================
+Installed Script
+Path: $INSTALL_DIR
+Bin Path: $INSTALL_DIR/system/bin
+
+Control Panel: http://apachep.$DOMAIN/
+PhpMyAdmin: http://apachep.$DOMAIN/phpmyadmin/
+Mysql User: root
+Mysql Password: $mysql_pass
+
+PhpPgAdmin: http://apachep.$DOMAIN/phppgadmin/
+PG User: postgres
+PG Password: $postgresql_pass
+==================================================
+EOT
+
+# Also display the final summary on screen.
+cat "$FINAL_SUMMARY"

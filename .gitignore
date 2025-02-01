@@ -8,3 +8,6 @@ temp/**/*
 
 # remove passwords
 *.passwd
+
+.domain
+.ip

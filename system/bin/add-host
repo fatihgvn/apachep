@@ -1,47 +1,66 @@
 #!/bin/bash
 
-# Arguments
-# add-host [domain] [phpversion]
+# Arguments:
+# add-host [domain_base] [phpversion]
+# This script combines the base domain with the stored domain extension
+# and uses the stored system IP from INSTALL_DIR for host entries.
 
-domain=$1
-path=/var/www/$domain
-port=80
+# Read the stored domain extension and system IP from INSTALL_DIR.
+INSTALL_DIR="/usr/local/apachep"
+
+if [ -f "$INSTALL_DIR/.domain" ]; then
+  domain_ext=$(cat "$INSTALL_DIR/.domain")
+else
+  domain_ext="dev"
+fi
+
+if [ -f "$INSTALL_DIR/.ip" ]; then
+  system_ip=$(cat "$INSTALL_DIR/.ip")
+else
+  system_ip="127.0.0.1"
+fi
+
+# Process command-line arguments.
+domain_base=$1
 phpversion="default"
 
-if [ $# -eq 2 ]
-then
+if [ $# -eq 2 ]; then
   phpversion=$2
 fi
 
-echo $domain $port $phpversion
+# Combine base domain with the stored domain extension.
+domain="${domain_base}.${domain_ext}"
 
-apachep create-conf $domain $phpversion
+# Set the web root path based on the full domain.
+path="/var/www/$domain"
+port=80
 
-if [ ! -d "$path" ]
-then
-  mkdir $path
-  mkdir $path/public_html
-  mkdir $path/logs
-  mkdir $path/temp
-  mkdir $path/ssl
-  mkdir $path/backups
-  mkdir $path/conf
-  mkdir $path/private
+echo "$domain $port $phpversion"
 
-  cp -R /usr/local/apachep/system/templates/public_html/* $path/public_html
+# Create Apache configuration using apachep.
+apachep create-conf "$domain" "$phpversion"
 
-  chown -R $SUDO_USER $path
-  chgrp -R www-data $path
-  chmod g+s $path
-
-  apachep create-ssl $domain
+# If the document root doesn't exist, create necessary directories and copy templates.
+if [ ! -d "$path" ]; then
+  mkdir -p "$path/public_html" "$path/logs" "$path/temp" "$path/ssl" "$path/backups" "$path/conf" "$path/private"
+  cp -R /usr/local/apachep/system/templates/public_html/* "$path/public_html"
+  
+  # Set proper ownership and permissions.
+  chown -R "$SUDO_USER" "$path"
+  chgrp -R www-data "$path"
+  chmod g+s "$path"
+  
+  # Create SSL certificates.
+  apachep create-ssl "$domain"
 fi
 
-if [ ! -n "$(grep $domain /etc/hosts)" ]
-then
-  echo "127.0.0.1       $domain www.$domain" >> /etc/hosts
+# Update /etc/hosts with the domain entry if not already present.
+if ! grep -q "$domain" /etc/hosts; then
+  echo "$system_ip       $domain www.$domain" >> /etc/hosts
 fi
 
-a2ensite $domain.conf
+# Enable the site configuration in Apache.
+a2ensite "$domain.conf"
 
+# Restart Apache to apply changes.
 systemctl restart apache2.service
