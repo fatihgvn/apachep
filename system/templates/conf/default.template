@@ -1,4 +1,4 @@
-<VirtualHost *:80 *:443>
+<VirtualHost *:80>
   ServerAdmin webmaster@localhost
   ServerAlias {{host}} www.{{host}}
   ServerName {{host}}
@@ -11,10 +11,7 @@
     allow from all
   </Directory>
 
-  SSLEngine on
-  SSLCertificateFile {{path}}/ssl/{{host}}.crt
-  SSLCertificateKeyFile {{path}}/ssl/{{host}}.key
-  SSLCertificateChainFile {{path}}/ssl/{{host}}.crt
+  # PHP handler (eğer gerekiyorsa, buraya ekleyebilirsiniz)
 
   # Possible values include: debug, info, notice, warn, error, crit, alert, emerg.
   LogLevel warn

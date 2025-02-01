@@ -1,8 +1,11 @@
-# apachep
+# Apachep
 
-Apacheap automatically installs the following packages on your linux system. It allows you to develop more than one project at the same time by dividing your web projects into virtual hosts in localhost. With the help of PHP-FPM, you can continue to develop your different projects in different versions with more than one php version at the same time.
+Apachep automatically installs the following packages on your Linux system. It allows you to develop more than one project at the same time by dividing your web projects into virtual hosts on localhost. With the help of PHP-FPM, you can develop different projects concurrently using different PHP versions.
 
-**Packages Used**
+---
+
+## Packages Used
+
 ```
 apache2
 php
@@ -14,161 +17,202 @@ mysql-server
 zip
 unzip
 net-tools
+postgresql
+postgresql-contrib
+phppgadmin
 ```
 
-# Tested
+---
 
-Linux|Version(s)|Result
----|---|---
-Ubuntu|20.04, 22.04|Success
-Debian|-|-
-Centos|-|-
+## Tested
 
+| Linux   | Version(s)    | Result  |
+|---------|---------------|---------|
+| Ubuntu  | 20.04, 22.04  | Success |
+| Debian  | -             | -       |
+| Centos  | -             | -       |
 
-# run install
+---
 
+## Run Install
+
+### Installation Arguments
+
+| Parameter   | Description                                                                                                                                    |
+|-------------|------------------------------------------------------------------------------------------------------------------------------------------------|
+| --domain    | (Optional) Sets the default domain extension. The value is stored in `.domain` (default: `dev`).                                               |
+| --dnsmasq   | (Optional) If specified, the dnsmasq installation script will be run. **Warning:** If Apachep is not being installed inside an LXC container, using `--dnsmasq` may cause issues. Verify your environment before using this parameter. |
+
+### Ubuntu Installation
+
+```bash
+wget https://raw.githubusercontent.com/fatihgvn/apachep/main/install/install-ubuntu.sh
+bash install-ubuntu.sh --domain dev --dnsmasq
 ```
-bash -c "$(wget -O- https://raw.githubusercontent.com/fatihgvn/apachep/main/install/install-ubuntu.sh)"
-```
 
-# Commands
+> **Note:**  
+> If you do not specify the `--domain` parameter, the default extension `dev` will be used.  
+> **Important:** The `--dnsmasq` parameter is intended for installations inside LXC containers. If you are installing Apachep on a standard host environment (i.e., not in LXC), using this parameter may lead to unexpected behavior.
 
-General Usage
-```
+---
+
+## Commands
+
+General usage:
+
+```bash
 sudo apachep [method] [args...]
 ```
 
-## method list
+### Method List
+
+---
 
 ### add-host
-Create a new virtual host.
 
-_Runs create-conf and create-ssl respectively_
+Create a new virtual host. This command automatically combines the base domain (provided as argument) with the stored domain extension (from the `INSTALL_DIR/.domain` file) and uses the stored system IP (from `INSTALL_DIR/.ip`) for host entries. It then runs the `create-conf` command (with additional parameters) to generate the Apache configuration and creates the necessary document root directories.
 
-Argument|detail|default
----|---|---
-domain|Domain address to be created|
-phpversion|Php version of virtual host|`php -v` to find out the default value
+**Arguments**
 
-**example**
+| Argument     | Detail                                                                                                                                  | Default                 |
+|--------------|-----------------------------------------------------------------------------------------------------------------------------------------|-------------------------|
+| domain_base  | Base part of the domain to be created. The final domain is composed as `[domain_base].[domain_extension]` (e.g., `test` becomes `test.dev`). | —                       |
+| phpversion   | PHP version to be used for the virtual host.                                                                                           | `default`               |
 
-*Use PHP 7.4*
-```
-sudo apachep add-host test.local 7.4
-```
+**Example**
 
-*Use default PHP*
-```
-sudo apachep add-host test.local
+*Using PHP 7.4*  
+```bash
+sudo apachep add-host test 7.4
 ```
 
-*Use default PHP*
-```
-sudo apachep add-host test.local default
+*Using default PHP*  
+```bash
+sudo apachep add-host test default
 ```
 
------
+---
 
 ### create-conf
-Create configuration file for domain
 
-Argument|detail|default
----|---|---
-domain|Domain address to be created|
-phpversion|Php version of virtual host|`php -v` to find out the default value
+Create the Apache configuration file for a domain.  
+**Note:** In this updated version, the template parameter is **mandatory**. You must supply the template name (without the `.template` extension) to be used. The configuration file is generated by replacing placeholders with the appropriate values.
 
-**example**
+**Arguments**
 
-*Use PHP 7.4*
-```
-sudo apachep create-conf test.local 7.4
-```
+| Argument    | Detail                                                                                                                       | Example         |
+|-------------|------------------------------------------------------------------------------------------------------------------------------|-----------------|
+| domain      | Domain address to be created (the full domain must be provided as created by `add-host`, e.g., `test.dev`).                  | `test.dev`      |
+| phpversion  | PHP version to be used (e.g., `default` or `7.4`).                                                                           | `default` or `7.4` |
+| template    | **Mandatory.** Template name (without extension) to be used. The file `/usr/local/apachep/system/templates/conf/<template>.template` must exist. | `default` or `default.fpm` |
 
-*Use default PHP*
-```
-sudo apachep create-conf test.local
-```
+**Example**
 
-*Use default PHP*
-```
-sudo apachep create-conf test.local default
+*Use default PHP with the default template*  
+```bash
+sudo apachep create-conf test.dev default default
 ```
 
------
+*Use PHP 7.4 with the FPM template*  
+```bash
+sudo apachep create-conf test.dev 7.4 default.fpm
+```
+
+---
 
 ### create-ssl
-Create SSL for domain
 
-Argument|detail|default
----|---|---
-domain|Domain address to be created|
-password|Password for SSL|dummypassword
+Create SSL for a domain by generating a key, CSR, and a self-signed certificate.
 
-**example**
+**Arguments**
 
-*Use own password*
-```
-sudo apachep create-ssl test.local mypassword
-```
+| Argument  | Detail                                     | Default         |
+|-----------|--------------------------------------------|-----------------|
+| domain    | Domain address for which SSL is created. | —               |
+| password  | Password for SSL (if not provided, a default dummy password is used). | `dummypassword` |
 
-*Use default password*
-```
-sudo apachep create-ssl test.local
+**Example**
+
+*Use your own password*  
+```bash
+sudo apachep create-ssl test.dev mypassword
 ```
 
------
+*Use default password*  
+```bash
+sudo apachep create-ssl test.dev
+```
+
+---
 
 ### install-php
-Install new php fpm version
 
-Argument|detail|default
----|---|---
-phpversion|PHP version to install|
+Install a new PHP-FPM version.
 
-**example**
+**Arguments**
 
-```
+| Argument  | Detail                          | Default |
+|-----------|---------------------------------|---------|
+| phpversion| PHP version to install          | —       |
+
+**Example**
+
+```bash
 sudo apachep install-php 7.4
 ```
 
------
+---
 
 ### remove-host
-Remove an existing host
 
-Argument|detail|default
----|---|---
-domain|Domain address to be removed|
-with-conf|Will the config file be removed as well?|`false` or `true` default is `true`
+Remove an existing host along with its configuration files and document root (optionally).
 
-**example**
+**Arguments**
 
-*Remove host with configurations*
-```
-sudo apachep remove-host test.local
-```
+| Argument    | Detail                                                                   | Default      |
+|-------------|--------------------------------------------------------------------------|--------------|
+| domain      | Domain address to be removed.                                            | —            |
+| with-conf   | Whether the configuration file should also be removed (`true` or `false`). | `true`       |
 
-*Remove host with configurations*
-```
-sudo apachep remove-host test.local true
+**Example**
+
+*Remove host with configuration*  
+```bash
+sudo apachep remove-host test.dev
 ```
 
-*Remove host without configurations*
-```
-sudo apachep remove-host test.local false
+*Remove host without configuration*  
+```bash
+sudo apachep remove-host test.dev false
 ```
 
------
+---
 
 ### remove-conf
-Remove an existing host configuration files
 
-Argument|detail|default
----|---|---
-domain|Domain address to be removed|
+Remove an existing host configuration file.
 
-**example**
+**Arguments**
 
+| Argument  | Detail                                 | Default |
+|-----------|----------------------------------------|---------|
+| domain    | Domain address for which the configuration should be removed. | —       |
+
+**Example**
+
+```bash
+sudo apachep remove-conf test.dev
 ```
-sudo apachep remove-conf test.local
-```
+
+---
+
+## Additional Information
+
+- **Domain Extension & System IP Storage:**  
+  During installation, the domain extension is stored in `INSTALL_DIR/.domain` and the detected system IP in `INSTALL_DIR/.ip`. These values are used by commands like `add-host` to construct full domain names and update `/etc/hosts` automatically.
+
+- **Apachep Wrapper:**  
+  The command wrapper installed at `/usr/bin/apachep` allows you to run Apachep commands easily. Use `sudo apachep [method] [args...]` for all operations.
+
+- **LXC Considerations:**  
+  The `--dnsmasq` parameter is designed for installations within LXC containers. If Apachep is not installed in an LXC container, using `--dnsmasq` might cause issues. Make sure your environment is compatible with dnsmasq usage before enabling this option.

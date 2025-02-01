@@ -1,32 +1,54 @@
 #!/bin/bash
+set -e
 
-# Arguments
-# create-conf [domain] [phpversion]
+# Usage:
+# create-conf [domain] [phpversion] [template] [port]
+#
+# - domain: The domain name (e.g., example.com)
+# - phpversion: PHP version (e.g., "default" or "8.3")
+# - template: (Mandatory) Template name (without the .template extension).
+#             The file /usr/local/apachep/system/templates/conf/<template>.template must exist.
+# - port: (Optional) Port number to use; if not provided, defaults to 80.
+
+# Check if at least 3 arguments are provided.
+if [ "$#" -lt 3 ]; then
+  echo "Usage: $0 [domain] [phpversion] [template] [port]"
+  exit 1
+fi
 
 domain=$1
-path=/var/www/$domain
-port=80
-phpversion="default"
+phpversion=$2
+template=$3
 
-if [ $# -eq 2 ]
-then
-  phpversion=$2
-fi
-
-conf_file=/usr/local/apachep/system/hosts/$domain.conf
-
-if [ $phpversion = 'default' ]
-then
-  cp /usr/local/apachep/system/templates/conf/default.template $conf_file
+# Set port to the 4th argument if provided, otherwise default to 80.
+if [ "$#" -eq 4 ]; then
+  port=$4
 else
-  cp /usr/local/apachep/system/templates/conf/default.fpm.template $conf_file
+  port=80
 fi
 
+path=/var/www/$domain
 
-sed -i "s/{{port}}/$port/g" $conf_file
-sed -i "s/{{host}}/$domain/g" $conf_file
-path_sed=$(echo $path | sed 's_/_\\/_g')
-sed -i "s/{{path}}/$path_sed/g" $conf_file
-sed -i "s/{{phpversion}}/$phpversion/g" $conf_file
+echo "$domain $port $phpversion $template"
 
-cp $conf_file /etc/apache2/sites-available
+conf_file="/usr/local/apachep/system/hosts/$domain.conf"
+
+# Determine the template file path and check if it exists.
+template_file="/usr/local/apachep/system/templates/conf/${template}.template"
+if [ ! -f "$template_file" ]; then
+  echo "Error: Template file $template_file does not exist."
+  exit 1
+fi
+
+# Copy the specified template file.
+cp "$template_file" "$conf_file"
+
+# Replace placeholders in the configuration file.
+sed -i "s/{{port}}/$port/g" "$conf_file"
+sed -i "s/{{host}}/$domain/g" "$conf_file"
+path_sed=$(echo "$path" | sed 's_/_\\/_g')
+sed -i "s/{{path}}/$path_sed/g" "$conf_file"
+sed -i "s/{{phpversion}}/$phpversion/g" "$conf_file"
+
+# Copy the final configuration to Apache's sites-available directory.
+cp "$conf_file" /etc/apache2/sites-available

@@ -1,61 +1,97 @@
 #!/bin/bash
 
-# Arguments
-# create-ssl [domain] [password]
+# Arguments:
+# create-ssl [domain_base] [password]
+#
+# The final domain will be composed by combining the domain_base provided as argument 
+# with the extension stored in INSTALL_DIR/.domain. For example, if domain_base is "example" 
+# and .domain contains "dev", the final domain becomes "example.dev".
 
-domain=$1
+# Set INSTALL_DIR
+INSTALL_DIR="/usr/local/apachep"
+
+# Read the domain extension from INSTALL_DIR/.domain if exists, otherwise use "dev".
+if [ -f "$INSTALL_DIR/.domain" ]; then
+  domain_ext=$(cat "$INSTALL_DIR/.domain")
+else
+  domain_ext="dev"
+fi
+
+# Get the domain base from the first argument.
+domain_base=$1
+
+# Compose the final domain.
+domain="${domain_base}.${domain_ext}"
+
+# Set the path based on the final domain.
 path=/var/www/$domain
 
-# for ssl ==============
-country="TR"
-state="Istanbul"
-locality="Turkey"
-organization="Hodein"
-organizationalunit="IT"
-#Optional for ssl
+# Optional password for SSL generation.
 password=""
 
-if [ $# -eq 2 ]
-then
+# If a password is provided as second argument, use it.
+if [ $# -eq 2 ]; then
   password=$2
 fi
 
-#Clear old files
+# Ensure the SSL directory exists.
+mkdir -p "$path/ssl"
+
+# Clear old SSL files if they exist.
 if test -f "$path/ssl/$domain.key"; then
-  echo "Clear old key file"
-  rm $path/ssl/$domain.key
+  echo "Clearing old key file"
+  rm "$path/ssl/$domain.key"
 fi
 if test -f "$path/ssl/$domain.csr"; then
-  echo "Clear old csr file"
-  rm $path/ssl/$domain.csr
+  echo "Clearing old CSR file"
+  rm "$path/ssl/$domain.csr"
 fi
 if test -f "$path/ssl/$domain.crt"; then
-  echo "Clear old crt file"
-  rm $path/ssl/$domain.crt
+  echo "Clearing old CRT file"
+  rm "$path/ssl/$domain.crt"
 fi
 
+# Ensure the CA certificates directory exists.
 if ! test -d "/usr/local/share/ca-certificates/"; then
-  mkdir /usr/local/share/ca-certificates/
+  mkdir -p /usr/local/share/ca-certificates/
 fi
 
-echo "$password" > $path/ssl/password
+# Save the password for reference.
+echo "$password" > "$path/ssl/password"
 
-#Generate a key
-echo "Generating key request for $domain [passwd: $password]"
-openssl genrsa -des3 -passout pass:$password -out $path/ssl/$domain.key 2048
+# Generate a key (with passphrase if provided).
+echo "Generating key for $domain [passwd: $password]"
+if [ -n "$password" ]; then
+  openssl genrsa -des3 -passout pass:"$password" -out "$path/ssl/$domain.key" 2048
+else
+  openssl genrsa -out "$path/ssl/$domain.key" 2048
+fi
 
-#Remove passphrase from the key. Comment the line out to keep the passphrase
-echo "Removing passphrase from key"
-openssl rsa -inform DER -in $path/ssl/$domain.key -passin pass:$password -out $path/ssl/$domain.key
+# Remove passphrase from the key if a password was used.
+if [ -n "$password" ]; then
+  echo "Removing passphrase from key"
+  openssl rsa -in "$path/ssl/$domain.key" -passin pass:"$password" -out "$path/ssl/$domain.key"
+fi
 
-#Create the request
+# Create the Certificate Signing Request (CSR).
 echo "Creating CSR"
-openssl req -new -key $path/ssl/$domain.key -out $path/ssl/$domain.csr -passin pass:$password \
-	-subj "/C=$country/ST=$state/L=$locality/O=$organization/OU=$organizationalunit/CN=$domain/CN=www.$domain/emailAddress=admin@$domain"
+if [ -n "$password" ]; then
+  openssl req -new -key "$path/ssl/$domain.key" -out "$path/ssl/$domain.csr" -passin pass:"$password" \
+    -subj "/C=TR/ST=Istanbul/L=Turkey/O=Hodein/OU=IT/CN=$domain/emailAddress=admin@$domain"
+else
+  openssl req -new -key "$path/ssl/$domain.key" -out "$path/ssl/$domain.csr" \
+    -subj "/C=TR/ST=Istanbul/L=Turkey/O=Hodein/OU=IT/CN=$domain/emailAddress=admin@$domain"
+fi
 
-openssl x509 -in $path/ssl/$domain.csr -out $path/ssl/$domain.crt -req -signkey $path/ssl/$domain.key -days 365 -passin pass:$password
+# Self-sign the certificate.
+if [ -n "$password" ]; then
+  openssl x509 -in "$path/ssl/$domain.csr" -out "$path/ssl/$domain.crt" -req -signkey "$path/ssl/$domain.key" -days 365 -passin pass:"$password"
+else
+  openssl x509 -in "$path/ssl/$domain.csr" -out "$path/ssl/$domain.crt" -req -signkey "$path/ssl/$domain.key" -days 365
+fi
 
-chmod 700 $path/ssl/$domain.*
+# Secure the SSL files.
+chmod 700 "$path/ssl/$domain".*
 
 echo "Restarting apache..."
 systemctl restart apache2.service

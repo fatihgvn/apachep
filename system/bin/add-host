@@ -51,7 +51,7 @@ if [ ! -d "$path" ]; then
   chmod g+s "$path"
   
   # Create SSL certificates.
-  apachep create-ssl "$domain"
+  # apachep create-ssl "$domain"
 fi
 
 # Update /etc/hosts with the domain entry if not already present.

@@ -242,7 +242,7 @@ apachep_domain="apachep.$DOMAIN"
 echo "Creating site for domain: $apachep_domain with document root: $INSTALL_DIR"
 
 # Create Apache configuration for the apachep domain.
-apachep create-conf "$apachep_domain" "default"
+apachep create-conf "$apachep_domain" "default" "default"
 
 # Path to the generated Apache configuration file.
 config_file="$INSTALL_DIR/system/hosts/${apachep_domain}.conf"
