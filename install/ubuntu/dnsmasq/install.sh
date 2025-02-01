@@ -47,8 +47,9 @@ cat > "$DNSMASQ_CONF" <<EOF
 address=/.${DOMAIN_EXT}/$SYSTEM_IP
 
 # Uncomment the following lines if you want to restrict dnsmasq to a specific interface (e.g., eth0):
-# interface=eth0
-# bind-interfaces
+listen-address=$SYSTEM_IP
+interface=eth0
+bind-interfaces
 EOF
 
 # (Optional) Review the default settings in /etc/dnsmasq.conf for any potential conflicts
