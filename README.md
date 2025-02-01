@@ -36,6 +36,21 @@ phppgadmin
 
 ## Run Install
 
+### Pre-Installation Requirements (Ubuntu)
+
+Before installing Apachep on Ubuntu, please ensure that the following packages are already installed on your system:
+
+- **git**  
+- **wget**  
+- **software-properties-common**
+
+These packages are required for fetching the installation script and adding external repositories. You can install them using:
+
+```bash
+sudo apt-get update
+sudo apt-get install -y git wget software-properties-common
+```
+
 ### Installation Arguments
 
 | Parameter   | Description                                                                                                                                    |
