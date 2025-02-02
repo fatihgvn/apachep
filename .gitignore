@@ -1,13 +1,18 @@
 
 # conf files
 system/hosts/*.conf
-!system/hosts/manager.local.conf
+!system/hosts/.gitkeep
 
 # temp folder
-temp/**/*
+temp/*
+!temp/.gitkeep
 
 # remove passwords
 *.passwd
 
 .domain
 .ip
+
+# logs
+logs/*
+!logs/.gitkeep
