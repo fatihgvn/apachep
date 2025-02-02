@@ -1,0 +1,49 @@
+#!/bin/bash
+set -e
+
+# Usage: fix-permissions.sh [domain_base]
+#
+# The final domain is composed by combining the domain_base provided as argument 
+# with the extension stored in INSTALL_DIR/.domain. For example, if domain_base is "example" 
+# and .domain contains "dev", the final domain becomes "example.dev".
+#
+# This script fixes the permissions for all files under the public_html directory for the specified domain.
+
+# Set INSTALL_DIR
+INSTALL_DIR="/usr/local/apachep"
+
+# Check if exactly one argument is provided.
+if [ "$#" -ne 1 ]; then
+  echo "Usage: $0 [domain_base]"
+  exit 1
+fi
+
+# Get the domain base from the first argument.
+domain_base=$1
+
+# Read the domain extension from INSTALL_DIR/.domain if it exists, otherwise use "dev".
+if [ -f "$INSTALL_DIR/.domain" ]; then
+  domain_ext=$(cat "$INSTALL_DIR/.domain")
+else
+  domain_ext="dev"
+fi
+
+# Compose the final domain.
+domain="${domain_base}.${domain_ext}"
+
+# Set the target directory for public_html.
+target_dir="/var/www/${domain}/public_html"
+
+# Check if the target directory exists.
+if [ ! -d "$target_dir" ]; then
+  echo "Error: Directory $target_dir does not exist."
+  exit 1
+fi
+
+echo "Fixing ownership for all files in $target_dir to www-data:www-data..."
+sudo chown -R www-data:www-data "$target_dir"
+
+echo "Fixing permissions for all files in $target_dir so that user and group have full rights (rwx)..."
+sudo chmod -R 775 "$target_dir"
+
+echo "Permissions fixed successfully."
