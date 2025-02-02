@@ -31,7 +31,14 @@ path=/var/www/$domain
 
 echo "$domain $port $phpversion $template"
 
-conf_file="/usr/local/apachep/system/hosts/$domain.conf"
+# Determine the configuration file name based on template.
+# If template ends with ".ssl", then the file name becomes "$domain.ssl.conf",
+# otherwise it defaults to "$domain.conf".
+if [[ "$template" == *.ssl ]]; then
+  conf_file="/usr/local/apachep/system/hosts/${domain}.ssl.conf"
+else
+  conf_file="/usr/local/apachep/system/hosts/${domain}.conf"
+fi
 
 # Determine the template file path and check if it exists.
 template_file="/usr/local/apachep/system/templates/conf/${template}.template"

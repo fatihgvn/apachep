@@ -48,10 +48,7 @@ if [ ! -d "$path" ]; then
   # Set proper ownership and permissions.
   chown -R "www-data" "$path"
   chgrp -R www-data "$path"
-  chmod g+s "$path"
-  
-  # Create SSL certificates.
-  # apachep create-ssl "$domain"
+  chmod -R 775 "$path"
 fi
 
 # Update /etc/hosts with the domain entry if not already present.

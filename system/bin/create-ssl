@@ -1,11 +1,17 @@
 #!/bin/bash
+set -e
 
-# Arguments:
-# create-ssl [domain_base] [password]
+# Usage:
+# create-ssl [domain_base] [template] [password]
 #
-# The final domain will be composed by combining the domain_base provided as argument 
+# The final domain is composed by combining the domain_base provided as argument 
 # with the extension stored in INSTALL_DIR/.domain. For example, if domain_base is "example" 
 # and .domain contains "dev", the final domain becomes "example.dev".
+#
+# - domain_base: Base domain name (e.g., "example")
+# - template: Template name to be used for configuration (without the .template extension).
+#             **Default value:** "default.ssl". The provided template MUST end with ".ssl".
+# - password: (Optional) Password for SSL generation.
 
 # Set INSTALL_DIR
 INSTALL_DIR="/usr/local/apachep"
@@ -17,22 +23,51 @@ else
   domain_ext="dev"
 fi
 
+# Check if at least one argument (domain_base) is provided.
+if [ "$#" -lt 1 ]; then
+  echo "Usage: $0 [domain_base] [template] [password]"
+  exit 1
+fi
+
 # Get the domain base from the first argument.
 domain_base=$1
+
+# Get template from the second argument, or use default if not provided.
+if [ "$#" -ge 2 ]; then
+  template=$2
+else
+  template="default.ssl"
+fi
+
+# Enforce that the template ends with ".ssl". If not, override with default.
+if [[ "$template" != *.ssl ]]; then
+  echo "Error: The provided template must end with .ssl. Using default template 'default.ssl'."
+  template="default.ssl"
+fi
+
+# Get the optional password from the third argument.
+password=""
+if [ "$#" -ge 3 ]; then
+  password=$3
+fi
 
 # Compose the final domain.
 domain="${domain_base}.${domain_ext}"
 
+# Now, before generating SSL configuration via create-conf,
+# ensure that the Apache configuration for the domain exists.
+conf_path="/etc/apache2/sites-available/${domain}.conf"
+if [ ! -f "$conf_path" ]; then
+  echo "Error: Configuration file $conf_path does not exist. Please create it before generating SSL configuration."
+  exit 1
+fi
+
 # Set the path based on the final domain.
 path=/var/www/$domain
 
-# Optional password for SSL generation.
-password=""
-
-# If a password is provided as second argument, use it.
-if [ $# -eq 2 ]; then
-  password=$2
-fi
+echo "Domain: $domain"
+echo "Template: $template"
+echo "Password: $password"
 
 # Ensure the SSL directory exists.
 mkdir -p "$path/ssl"
@@ -92,6 +127,17 @@ fi
 
 # Secure the SSL files.
 chmod 700 "$path/ssl/$domain".*
+
+# Extract the PHP version from the existing configuration (if available).
+php_version_extracted=$(grep 'SetHandler "proxy:unix:/run/php/php' "$conf_path" | sed -n 's/.*proxy:unix:\/run\/php\/php\([0-9.]*\)-fpm.sock.*/\1/p')
+if [ -z "$php_version_extracted" ]; then
+  php_version_extracted="default"
+fi
+
+echo "Extracted PHP version from configuration: $php_version_extracted"
+
+# Call the create-conf command with the extracted PHP version, the provided template, and port 443.
+apachep create-conf "$domain" "$php_version_extracted" "$template" "443"
 
 echo "Restarting apache..."
 systemctl restart apache2.service
