@@ -1,32 +1,72 @@
 #!/bin/bash
+set -e
 
-# Arguments
-# install-php [phpversion]
+# Usage: install-php [phpversion]
+# Example: install-php 7.4
 
-
-software="php$1-fpm php$1-common
-  php$1-mysql php$1-xml
-  php$1-xmlrpc php$1-curl
-  php$1-gd php$1-imagick
-  php$1-cli php$1-dev php$1-imap
-  php$1-mbstring php$1-soap
-  php$1-zip php$1-bcmath"
-
-echo "installing $software..."
-
-# Updating system
-apt-get update
-
-# Installing apt packages
-apt-get -y install $software
-if [[ $? > 0 ]]
-then
-	echo "FPM version not found."
-	exit 1
+# Check that exactly one argument is provided.
+if [ "$#" -ne 1 ]; then
+    echo "Usage: $0 [phpversion]"
+    exit 1
 fi
 
-a2enmod "proxy_fcgi setenvif"
-a2enconf "php$1-fpm"
+phpversion=$1
 
-# restart apache
-systemctl restart apache2.service
+# Define the critical packages (required for PHP-FPM functionality).
+critical_pkgs=("php${phpversion}-fpm" "php${phpversion}-common")
+
+# Define the optional packages (common and popular PHP libraries).
+optional_pkgs=(
+  "php${phpversion}-mysql" 
+  "php${phpversion}-xml"
+  "php${phpversion}-xmlrpc"
+  "php${phpversion}-curl"
+  "php${phpversion}-gd"
+  "php${phpversion}-imagick"
+  "php${phpversion}-cli"
+  "php${phpversion}-dev"
+  "php${phpversion}-imap"
+  "php${phpversion}-mbstring"
+  "php${phpversion}-soap"
+  "php${phpversion}-zip"
+  "php${phpversion}-bcmath"
+)
+
+# Check for the existence of each critical package in the apt repository.
+for pkg in "${critical_pkgs[@]}"; do
+    if ! apt-cache show "$pkg" > /dev/null 2>&1; then
+         echo -e "\033[0;31mError: Critical package '$pkg' not found in apt repository. Aborting installation.\033[0m"
+         exit 1
+    fi
+done
+
+# For optional packages, build a list of those that exist and warn for missing ones.
+optional_exist=()
+for pkg in "${optional_pkgs[@]}"; do
+    if ! apt-cache show "$pkg" > /dev/null 2>&1; then
+         echo -e "\033[0;31mWarning: Optional package '$pkg' not found in apt repository. Skipping it.\033[0m"
+    else
+         optional_exist+=("$pkg")
+    fi
+done
+
+echo "Updating package lists..."
+sudo apt-get update
+
+echo "Installing critical packages: ${critical_pkgs[*]}"
+sudo apt-get -y install "${critical_pkgs[@]}"
+
+if [ ${#optional_exist[@]} -gt 0 ]; then
+    echo "Installing optional packages: ${optional_exist[*]}"
+    # Install optional packages; if any fail, only a warning is printed.
+    sudo apt-get -y install "${optional_exist[@]}" || echo -e "\033[0;31mWarning: Some optional packages failed to install. Continuing installation.\033[0m"
+fi
+
+# Enable Apache modules and configuration.
+sudo a2enmod proxy_fcgi setenvif
+sudo a2enconf "php${phpversion}-fpm"
+
+echo "Restarting Apache..."
+sudo systemctl restart apache2.service
+
+echo "PHP-FPM version $phpversion installation completed successfully."
