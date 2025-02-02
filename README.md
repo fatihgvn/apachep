@@ -231,3 +231,53 @@ sudo apachep remove-conf test.dev
 
 - **LXC Considerations:**  
   The `--dnsmasq` parameter is designed for installations within LXC containers. If Apachep is not installed in an LXC container, using `--dnsmasq` might cause issues. Make sure your environment is compatible with dnsmasq usage before enabling this option.
+
+---
+
+## Sample LXC Configuration & Network Setup
+
+When installing Apachep within an LXC container, it is important to configure the container’s network correctly. Below is an example LXC configuration file:
+
+```ini
+# Common configuration
+lxc.include = /usr/share/lxc/config/ubuntu.common.conf
+
+# Container specific configuration
+lxc.apparmor.profile = generated
+lxc.apparmor.allow_nesting = 1
+lxc.rootfs.path = dir:/var/lib/lxc/apachep/rootfs
+lxc.uts.name = apachep
+lxc.arch = amd64
+
+# Network configuration
+lxc.net.0.type = veth
+lxc.net.0.hwaddr = 00:16:3e:b2:e0:2a
+lxc.net.0.link = lxcbr0
+lxc.net.0.flags = up
+lxc.net.0.ipv4.address = 10.0.3.58
+```
+
+**Important Points:**
+
+- **Bridge Interface:**  
+  Ensure that the `lxc.net.0.link` parameter points to the correct bridge (for example, `lxcbr0` or a different one if needed). If you wish to change it (e.g., to `lxcbr1`), verify that the new bridge exists and is correctly configured.
+
+- **NAT & Static IP:**  
+  Make sure that NAT configurations and static IP assignments are correct. The container’s static IP (here, `10.0.3.58`) should match the DNS settings used for split DNS.
+
+- **DNS Setup with resolvectl:**  
+  After configuring the container network, run the following commands on the host to ensure DNS queries for your domain are directed correctly:
+  
+  ```bash
+  sudo resolvectl dns lxcbr0 10.0.3.58
+  sudo resolvectl domain lxcbr0 '~dev'
+  ```
+  
+  If you are using a different domain extension (for example, `.devop`), adjust the resolvectl domain parameter accordingly:
+  
+  ```bash
+  sudo resolvectl domain lxcbr0 '~devop'
+  ```
+
+- **Static IP Consistency:**  
+  Ensure that the static IP assigned to the container remains consistent with the system’s detected IP (stored in `INSTALL_DIR/.ip`). The container’s network configuration should be set so that its IP does not change on reboot.
