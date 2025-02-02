@@ -99,6 +99,7 @@ echo "System IP: $SYSTEM_IP"
 
 # Add necessary repositories.
 add_repository ppa:ondrej/apache2
+add_repository ppa:ondrej/php
 
 # Update package lists.
 apt-get update
