@@ -139,5 +139,7 @@ echo "Extracted PHP version from configuration: $php_version_extracted"
 # Call the create-conf command with the extracted PHP version, the provided template, and port 443.
 apachep create-conf "$domain" "$php_version_extracted" "$template" "443"
 
+a2ensite "$domain.ssl.conf"
+
 echo "Restarting apache..."
 systemctl restart apache2.service
