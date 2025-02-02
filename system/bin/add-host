@@ -38,7 +38,7 @@ port=80
 echo "$domain $port $phpversion"
 
 # Create Apache configuration using apachep.
-apachep create-conf "$domain" "$phpversion"
+apachep create-conf "$domain" "$phpversion" "default" "$port"
 
 # If the document root doesn't exist, create necessary directories and copy templates.
 if [ ! -d "$path" ]; then
@@ -46,7 +46,7 @@ if [ ! -d "$path" ]; then
   cp -R /usr/local/apachep/system/templates/public_html/* "$path/public_html"
   
   # Set proper ownership and permissions.
-  chown -R "$SUDO_USER" "$path"
+  chown -R "www-data" "$path"
   chgrp -R www-data "$path"
   chmod g+s "$path"
   
