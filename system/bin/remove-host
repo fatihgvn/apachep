@@ -1,28 +1,41 @@
 #!/bin/bash
+set -e
 
-# Arguments
+# Usage:
 # remove-host [domain] [with-conf]
+#
+# - domain: Domain address to be removed (e.g., test.dev). This argument is mandatory.
+# - with-conf: (Optional) Whether to remove the configuration file as well ("true" or "false"). Default is "true".
+
+# Check if the domain argument is provided.
+if [ -z "$1" ]; then
+  echo "Error: Domain must be provided. Exiting."
+  exit 1
+fi
 
 domain=$1
-path=/var/www/$domain
+path="/var/www/$domain"
 withconf="true"
 
-if [ $# -eq 2 ]
-then
+if [ "$#" -eq 2 ]; then
   withconf=$2
 fi
 
-if [ -d "$path" ]
-then
-  rm -rf $path
+# Only remove the document root if it exists.
+if [ -d "$path" ]; then
+  rm -rf "$path"
+else
+  echo "Directory $path does not exist, skipping removal of document root."
 fi
 
-if [ "$withconf" = "true" ]
-then
-  apachep remove-conf $domain
+if [ "$withconf" = "true" ]; then
+  apachep remove-conf "$domain"
 fi
 
+# Escape dots in the domain name for the sed regular expression.
 newhost=${domain//./\\.}
 sed -i "/$newhost/d" /etc/hosts
 
 systemctl restart apache2.service
+
+echo "Host $domain has been removed."

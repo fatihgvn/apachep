@@ -1,44 +1,65 @@
 #!/bin/bash
+set -e
 
 # Arguments:
-# add-host [domain_base] [phpversion]
-# This script combines the base domain with the stored domain extension
-# and uses the stored system IP from INSTALL_DIR for host entries.
+# add-host [domain] [phpversion] [template]
+#
+# - domain: Domain base (e.g., test). The final domain is composed by combining this with the extension
+#           stored in INSTALL_DIR/.domain (e.g., test.dev).
+# - phpversion: PHP version to be used (e.g., default or 7.4).
+# - template: (Optional) Template name (without the .template extension).
+#             If not provided, the default is "default" if phpversion is "default",
+#             and "default.fpm" if phpversion is not "default".
 
-# Read the stored domain extension and system IP from INSTALL_DIR.
+# Set INSTALL_DIR
 INSTALL_DIR="/usr/local/apachep"
 
+# Read the domain extension from INSTALL_DIR/.domain if exists, otherwise use "dev".
 if [ -f "$INSTALL_DIR/.domain" ]; then
   domain_ext=$(cat "$INSTALL_DIR/.domain")
 else
   domain_ext="dev"
 fi
 
+# Read the stored system IP from INSTALL_DIR/.ip if exists, otherwise use "127.0.0.1".
 if [ -f "$INSTALL_DIR/.ip" ]; then
   system_ip=$(cat "$INSTALL_DIR/.ip")
 else
   system_ip="127.0.0.1"
 fi
 
-# Process command-line arguments.
-domain_base=$1
-phpversion="default"
-
-if [ $# -eq 2 ]; then
-  phpversion=$2
+# Check if at least 2 arguments are provided.
+if [ "$#" -lt 2 ]; then
+  echo "Usage: $0 [domain] [phpversion] [template]"
+  exit 1
 fi
 
-# Combine base domain with the stored domain extension.
+# Process command-line arguments.
+domain_base=$1
+phpversion=$2
+
+# Determine template: if the 3rd argument is provided, use it; otherwise, use default based on phpversion.
+if [ "$#" -eq 3 ]; then
+  template=$3
+else
+  if [ "$phpversion" = "default" ]; then
+    template="default"
+  else
+    template="default.fpm"
+  fi
+fi
+
+# Compose the final domain.
 domain="${domain_base}.${domain_ext}"
 
-# Set the web root path based on the full domain.
+# Set the web root path based on the final domain.
 path="/var/www/$domain"
 port=80
 
-echo "$domain $port $phpversion"
+echo "Domain: $domain, Port: $port, PHP Version: $phpversion, Template: $template"
 
 # Create Apache configuration using apachep.
-apachep create-conf "$domain" "$phpversion" "default" "$port"
+apachep create-conf "$domain" "$phpversion" "$template" "$port"
 
 # If the document root doesn't exist, create necessary directories and copy templates.
 if [ ! -d "$path" ]; then
@@ -46,7 +67,7 @@ if [ ! -d "$path" ]; then
   cp -R /usr/local/apachep/system/templates/public_html/* "$path/public_html"
   
   # Set proper ownership and permissions.
-  chown -R "www-data" "$path"
+  chown -R www-data "$path"
   chgrp -R www-data "$path"
   chmod -R 775 "$path"
 fi
