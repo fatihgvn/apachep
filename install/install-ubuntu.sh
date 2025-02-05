@@ -171,7 +171,10 @@ apt-get install -y phpmyadmin
 echo "\$cfg['SendErrorReports'] = 'never';" >> /etc/phpmyadmin/config.inc.php
 bash "$INSTALL_DIR/install/ubuntu/pma/updater.sh"
 
-# PostgreSQL setup.
+# --------------------------------------------------
+# Update Apache configuration for phppgadmin
+# --------------------------------------------------
+
 postgresql_pass=$(gen_pass)
 echo "postgres:$postgresql_pass" > "$INSTALL_DIR/system/postgresql.passwd"
 
@@ -179,6 +182,40 @@ if ! grep -q "#Require Local" /etc/apache2/conf-available/phppgadmin.conf; then
   sed -i '/Require Local/ {s/^/# /; N; s/\n/\nAllow from all\n/}' /etc/apache2/conf-available/phppgadmin.conf
 fi
 
+if ! grep -q "Require local" /etc/apache2/conf-enabled/phppgadmin.conf; then
+  sed -i 's/Require local/Allow from all/gI' /etc/apache2/conf-enabled/phppgadmin.conf
+fi
+
+# --------------------------------------------------
+# Configure PostgreSQL to allow external connections.
+# --------------------------------------------------
+# Determine the installed PostgreSQL version (assumes the first found version in /etc/postgresql)
+PG_VERSION=$(ls /etc/postgresql | head -n 1)
+if [ -n "$PG_VERSION" ]; then
+    echo "Configuring PostgreSQL for external connections (version: $PG_VERSION)..."
+    
+    # Update postgresql.conf to listen on all addresses.
+    CONF_FILE="/etc/postgresql/$PG_VERSION/main/postgresql.conf"
+    if grep -q "#listen_addresses = 'localhost'" "$CONF_FILE"; then
+        sed -i "s/#listen_addresses = 'localhost'/listen_addresses = '*'/" "$CONF_FILE"
+    else
+        # If the listen_addresses setting is already present but not commented out,
+        # update it to '*'
+        sed -i "s/listen_addresses = 'localhost'/listen_addresses = '*'/" "$CONF_FILE"
+    fi
+
+    # Update pg_hba.conf to allow external connections.
+    HBA_FILE="/etc/postgresql/$PG_VERSION/main/pg_hba.conf"
+    if ! grep -q "host[[:space:]]\+all[[:space:]]\+all[[:space:]]\+0\.0\.0\.0/0" "$HBA_FILE"; then
+        echo "host    all             all             0.0.0.0/0               md5" >> "$HBA_FILE"
+    fi
+else
+    echo "PostgreSQL version directory not found. Skipping external connection configuration."
+fi
+
+# --------------------------------------------------
+# Restart Apache and PostgreSQL services.
+# --------------------------------------------------
 systemctl restart apache2.service
 systemctl restart postgresql.service
 
