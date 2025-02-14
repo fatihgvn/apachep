@@ -121,11 +121,9 @@ done
 
 # 11. Attach to the container and execute installation commands.
 echo "Attaching to the container and executing installation commands..."
-lxc-attach -n apachep -- bash -c "\
-  apt update && \
-  apt install -y git wget software-properties-common && \
-  wget -qO /tmp/install-ubuntu.sh https://raw.githubusercontent.com/fatihgvn/apachep/main/install/ubuntu/install-ubuntu.sh && \
-  bash /tmp/install-ubuntu.sh $params
-"
+lxc-attach -n apachep -- bash -c "apt update"
+lxc-attach -n apachep -- bash -c "apt install -y git wget software-properties-common"
+lxc-attach -n apachep -- bash -c "wget -qO /tmp/install-ubuntu.sh https://raw.githubusercontent.com/fatihgvn/apachep/main/install/ubuntu/install-ubuntu.sh"
+lxc-attach -n apachep -- bash -c "/tmp/install-ubuntu.sh $params"
 
 echo "Installation commands executed inside the container."
