@@ -88,6 +88,32 @@ else
   user_name="$(whoami)"
 fi
 
+# Process parameters: parse options.
+container_domain="hdn"  # Default domain is "hdn"
+other_params=()
+
+while [ "$#" -gt 0 ]; do
+  case "$1" in
+    --domain)
+      if [ -n "$2" ]; then
+        container_domain="$2"
+        # Add both --domain and its value to other_params
+        other_params+=("$1" "$2")
+        shift 2
+      else
+        echo "Error: --domain option requires a value." >&2
+        exit 1
+      fi
+      ;;
+    *)
+      other_params+=("$1")
+      shift
+      ;;
+  esac
+done
+
+params="${other_params[@]}"
+
 # Set container domain (default value, adjust as needed)
 container_domain="hdn"
 
