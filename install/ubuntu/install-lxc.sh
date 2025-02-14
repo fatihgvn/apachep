@@ -114,9 +114,13 @@ echo "Script downloaded, placeholders replaced, and set as executable: $destinat
 lxc-start -n apachep
 
 # 10. Wait for the container to start running.
-echo "Waiting for container to start..."
-while [ "$(lxc-info -n apachep -s | awk '{print $2}')" != "RUNNING" ]; do
-    sleep 1
+echo "Waiting for container's network to be ready..."
+for i in {1..15}; do
+  if lxc-attach -n apachep -- bash -c "grep -q '^nameserver' /etc/resolv.conf"; then
+    echo "Network is ready."
+    break
+  fi
+  sleep 1
 done
 
 # 11. Attach to the container and execute installation commands.
