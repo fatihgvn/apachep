@@ -114,9 +114,6 @@ done
 
 params="${other_params[@]}"
 
-# Set container domain (default value, adjust as needed)
-container_domain="hdn"
-
 # Update the URL below with the actual GitHub script URL.
 script_url="https://raw.githubusercontent.com/fatihgvn/apachep/main/install/ubuntu/start-apachep"
 destination="$user_home/$(basename "$script_url")"
