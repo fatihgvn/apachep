@@ -1,0 +1,31 @@
+#!/bin/bash
+set -e
+
+# Check if the script is run as root.
+if [ "$(id -u)" -ne 0 ]; then
+  echo "You must be root or use sudo."
+  exit 1
+fi
+
+# Start the container.
+lxc-start -n apachep
+
+# Wait for the container to fully start (simple loop, adjust timeout as needed)
+echo "Waiting for container to start..."
+while [ "$(lxc-info -n apachep -s | awk '{print $2}')" != "RUNNING" ]; do
+    sleep 1
+done
+
+echo "Container apachep is running."
+
+# Set resolvectl settings on lxcbr0
+resolvectl domain lxcbr0 '~{{container_domain}}'
+resolvectl dns lxcbr0 {{container_ip}}
+
+# Ensure the target mount directory exists
+mkdir -p /home/{{user}}/apachep
+
+# Bind mount the container's /var/www to host's /home/{{user}}/apachep
+mount --bind /var/lib/lxc/apachep/rootfs/var/www /home/{{user}}/apachep
+
+echo "Mount completed successfully."
