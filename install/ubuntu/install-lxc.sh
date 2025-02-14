@@ -123,6 +123,8 @@ for i in {1..15}; do
   sleep 1
 done
 
+sleep 5  # Additional delay to ensure network readiness
+
 # 11. Attach to the container and execute installation commands.
 echo "Attaching to the container and executing installation commands..."
 lxc-attach -n apachep -- bash -c "apt update"
