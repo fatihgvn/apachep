@@ -146,13 +146,21 @@ echo "Script downloaded, placeholders replaced, and set as executable: $destinat
 # 9. Start the container again.
 lxc-start -n apachep
 
-# 10. Wait for the container to start running and its network to be ready.
+# 10. Wait for the container to start running.
 echo "Waiting for container to be in RUNNING state..."
 while [ "$(lxc-info -n apachep -s | awk '{print $2}')" != "RUNNING" ]; do
     sleep 1
 done
 
-sleep 5  # Additional delay to ensure network readiness
+sleep 5  # Additional delay to ensure system services are up
+
+# 10.5. Verify container's internet connectivity.
+echo "Checking container's internet connectivity..."
+while ! lxc-attach -n apachep -- bash -c "ping -c 1 -W 1 archive.ubuntu.com" >/dev/null 2>&1; do
+    echo "Internet not available yet. Waiting..."
+    sleep 2
+done
+echo "Internet connectivity confirmed inside the container."
 
 # 11. Attach to the container and execute installation commands.
 echo "Attaching to the container and executing installation commands..."
@@ -162,3 +170,4 @@ lxc-attach -n apachep -- bash -c "wget -qO /tmp/install-ubuntu.sh https://raw.gi
 lxc-attach -n apachep -- bash -c "bash /tmp/install-ubuntu.sh $params"
 
 echo "Installation commands executed inside the container."
+
