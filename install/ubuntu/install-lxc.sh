@@ -1,10 +1,6 @@
 #!/bin/bash
-# install-lxc.sh
-# This script is designed for Ubuntu and Debian-based systems to install LXC, create an "apachep" container,
-# retrieve its dynamically assigned IP address, set it as static, and then download a bash script from GitHub.
-# The downloaded script will have its placeholders replaced with actual values.
 
-# 1. Check for root/sudo privileges
+# 1. Check for root/sudo privileges.
 if [ "$EUID" -ne 0 ]; then
   echo "This script must be run as root/sudo." >&2
   exit 1
@@ -37,7 +33,53 @@ if [ $? -ne 0 ]; then
   exit 1
 fi
 
-# 5. Start the container and wait for its dynamically assigned IP address.
+# 4.5. Before starting the container, add a static MAC address to the container's configuration.
+config_file="/var/lib/lxc/apachep/config"
+if [ ! -f "$config_file" ]; then
+  echo "Error: Container config file not found: $config_file" >&2
+  exit 1
+fi
+
+# Generate a random MAC address in the range 00:16:3e:xx:xx:xx.
+hwaddr=$(printf '00:16:3e:%02x:%02x:%02x' $((RANDOM % 256)) $((RANDOM % 256)) $((RANDOM % 256)))
+{
+  echo ""
+  echo "# Static MAC address configuration added by install-lxc.sh"
+  echo "lxc.net.0.hwaddr = ${hwaddr}"
+} >> "$config_file"
+
+echo "The container's MAC address has been set to: $hwaddr"
+
+# 5. Process parameters: parse options.
+container_domain="hdn"  # Default domain is "hdn"
+other_params=()
+
+while [ "$#" -gt 0 ]; do
+  case "$1" in
+    --domain)
+      if [ -n "$2" ]; then
+        container_domain="$2"
+        # Add both --domain and its value to other_params.
+        other_params+=("$1" "$2")
+        shift 2
+      else
+        echo "Error: --domain option requires a value." >&2
+        exit 1
+      fi
+      ;;
+    *)
+      other_params+=("$1")
+      shift
+      ;;
+  esac
+done
+
+params="${other_params[@]}"
+
+echo "Specified domain: $container_domain"
+echo "Other parameters: $params"
+
+# 6. Start the container and wait for its dynamically assigned IP address.
 echo "Starting the 'apachep' container..."
 lxc-start -n apachep -d
 
@@ -59,24 +101,18 @@ fi
 
 echo "The container has obtained the dynamic IP address: $ip_address"
 
-# 6. Stop the container to apply static IP configuration.
+# 7. Stop the container to update static IPv4 and gateway settings.
 lxc-stop -n apachep
 
-# 7. Add static IP settings to the container's configuration file.
-config_file="/var/lib/lxc/apachep/config"
-if [ ! -f "$config_file" ]; then
-  echo "Error: Container config file not found: $config_file" >&2
-  exit 1
-fi
-
+# Append IPv4 and gateway settings to the config file.
 {
   echo ""
-  echo "# Static IP configuration added by install-lxc.sh"
+  echo "# Static IPv4 configuration added by install-lxc.sh"
   echo "lxc.net.0.ipv4.address = ${ip_address}/24"
   echo "lxc.net.0.ipv4.gateway = 10.0.3.1"
 } >> "$config_file"
 
-echo "The container's IP address ($ip_address) has been configured as static."
+echo "The container's IP address ($ip_address) and gateway have been configured as static."
 
 # 8. Download a bash script from GitHub to the active user's home directory,
 #    replace placeholders with actual values, and set it as executable.
@@ -87,32 +123,6 @@ else
   user_home="$HOME"
   user_name="$(whoami)"
 fi
-
-# Process parameters: parse options.
-container_domain="hdn"  # Default domain is "hdn"
-other_params=()
-
-while [ "$#" -gt 0 ]; do
-  case "$1" in
-    --domain)
-      if [ -n "$2" ]; then
-        container_domain="$2"
-        # Add both --domain and its value to other_params
-        other_params+=("$1" "$2")
-        shift 2
-      else
-        echo "Error: --domain option requires a value." >&2
-        exit 1
-      fi
-      ;;
-    *)
-      other_params+=("$1")
-      shift
-      ;;
-  esac
-done
-
-params="${other_params[@]}"
 
 # Update the URL below with the actual GitHub script URL.
 script_url="https://raw.githubusercontent.com/fatihgvn/apachep/main/install/ubuntu/start-apachep"
@@ -125,7 +135,7 @@ if [ $? -ne 0 ]; then
   exit 1
 fi
 
-# Replace placeholders in the downloaded script with actual values
+# Replace placeholders in the downloaded script with actual values.
 sed -i "s|{{container_ip}}|$ip_address|g" "$destination"
 sed -i "s|{{container_domain}}|$container_domain|g" "$destination"
 sed -i "s|{{user}}|$user_name|g" "$destination"
@@ -136,9 +146,8 @@ echo "Script downloaded, placeholders replaced, and set as executable: $destinat
 # 9. Start the container again.
 lxc-start -n apachep
 
-# 10. Wait for the container to start running.
-echo "Waiting for container's network to be ready..."
-echo "Waiting for container to start..."
+# 10. Wait for the container to start running and its network to be ready.
+echo "Waiting for container to be in RUNNING state..."
 while [ "$(lxc-info -n apachep -s | awk '{print $2}')" != "RUNNING" ]; do
     sleep 1
 done
