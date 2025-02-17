@@ -37,5 +37,8 @@ newhost=${domain//./\\.}
 sed -i "/$newhost/d" /etc/hosts
 
 systemctl restart apache2.service
+if command -v dnsmasq >/dev/null 2>&1; then
+    sudo systemctl restart dnsmasq
+fi
 
 echo "Host $domain has been removed."

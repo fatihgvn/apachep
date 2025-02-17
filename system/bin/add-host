@@ -82,3 +82,6 @@ a2ensite "$domain.conf"
 
 # Restart Apache to apply changes.
 systemctl restart apache2.service
+if command -v dnsmasq >/dev/null 2>&1; then
+    sudo systemctl restart dnsmasq
+fi

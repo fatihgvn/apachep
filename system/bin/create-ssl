@@ -143,3 +143,6 @@ a2ensite "$domain.ssl.conf"
 
 echo "Restarting apache..."
 systemctl restart apache2.service
+if command -v dnsmasq >/dev/null 2>&1; then
+    sudo systemctl restart dnsmasq
+fi

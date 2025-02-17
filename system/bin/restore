@@ -48,5 +48,8 @@ rm -rf /tmp/apachep
 
 echo "Restarting Apache service..."
 systemctl restart apache2.service
+if command -v dnsmasq >/dev/null 2>&1; then
+    sudo systemctl restart dnsmasq
+fi
 
 echo "OK"

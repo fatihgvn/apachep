@@ -44,7 +44,7 @@ echo "Configuring dnsmasq: $DNSMASQ_CONF"
 
 cat > "$DNSMASQ_CONF" <<EOF
 # Wildcard redirection for all *.${DOMAIN_EXT} domains
-address=/.${DOMAIN_EXT}/$SYSTEM_IP
+local=/${DOMAIN_EXT}/
 
 # Uncomment the following lines if you want to restrict dnsmasq to a specific interface (e.g., eth0):
 listen-address=$SYSTEM_IP
