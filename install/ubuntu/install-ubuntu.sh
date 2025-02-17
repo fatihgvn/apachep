@@ -147,7 +147,7 @@ systemctl restart apache2.service
 # If DNSMASQ_FLAG is true, run the dnsmasq installation script.
 if $DNSMASQ_FLAG; then
   echo "Running dnsmasq installation script..."
-  bash "$INSTALL_DIR/install/ubuntu/dnsmasq/install.sh"
+  bash "$INSTALL_DIR/install/ubuntu/dnsmasq/install.sh $DOMAIN"
 fi
 
 # MySQL setup.
