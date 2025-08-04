@@ -1,0 +1,74 @@
+#!/bin/bash
+set -e
+
+# Check if the script is run as root.
+if [ "$(id -u)" -ne 0 ]; then
+  echo "You must be root or use sudo."
+  exit 1
+fi
+
+# Function to list available backups
+list_available_backups() {
+    echo "Available backup files:"
+    ls -la /var/backups/lxc-apachep-backup-*.tar.gz 2>/dev/null | awk '{print $9}' | sed 's|/var/backups/lxc-apachep-backup-||g' | sed 's|.tar.gz||g' || echo "No backup files found in /var/backups/"
+}
+
+# Get backup date from user input
+if [ $# -eq 0 ]; then
+    echo "Usage: $0 <backup-date>"
+    echo "Example: $0 2025-08-03"
+    echo ""
+    list_available_backups
+    exit 1
+fi
+
+BACKUP_DATE="$1"
+BACKUP_FILE="/var/backups/lxc-apachep-backup-${BACKUP_DATE}.tar.gz"
+
+# Check if backup file exists
+if [ ! -f "$BACKUP_FILE" ]; then
+    echo "Error: Backup file not found: $BACKUP_FILE"
+    echo ""
+    list_available_backups
+    exit 1
+fi
+
+echo "Starting rollback process for apachep container..."
+echo "Using backup file: $BACKUP_FILE"
+
+# Stop the apachep container
+echo "Stopping apachep container..."
+lxc-stop -n apachep 2>/dev/null || echo "Container was already stopped or doesn't exist"
+
+# Wait for the container to fully stop
+echo "Waiting for container to stop..."
+while [ "$(lxc-info -n apachep -s 2>/dev/null | awk '{print $2}')" == "RUNNING" ]; do
+    sleep 1
+done
+
+echo "Container apachep is stopped."
+
+# Remove existing container directory
+echo "Removing existing container directory..."
+rm -rf /var/lib/lxc/apachep
+
+# Extract backup
+echo "Extracting backup: $BACKUP_FILE"
+tar -xzvf "$BACKUP_FILE" -C /var/lib/lxc
+
+echo "Backup extracted successfully."
+
+# Start the container
+echo "Starting apachep container..."
+lxc-start -n apachep
+
+# Wait for the container to fully start
+echo "Waiting for container to start..."
+while [ "$(lxc-info -n apachep -s | awk '{print $2}')" != "RUNNING" ]; do
+    sleep 1
+done
+
+echo "Container apachep is running."
+
+echo "Rollback process completed successfully."
+echo "Container has been restored from backup: $BACKUP_DATE"
