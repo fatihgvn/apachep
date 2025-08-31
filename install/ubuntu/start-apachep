@@ -1,31 +1,94 @@
 #!/bin/bash
 set -e
 
-# Check if the script is run as root.
+CONTAINER_NAME="apachep"
+DNS_TIMEOUT=15
+
+# Root olarak çalışıp çalışmadığını kontrol et.
 if [ "$(id -u)" -ne 0 ]; then
   echo "You must be root or use sudo."
   exit 1
 fi
 
-# Start the container.
-lxc-start -n apachep
+# Eğer container zaten çalışıyorsa, yeniden başlat.
+if lxc-info -n "$CONTAINER_NAME" -s | awk '{print $2}' | grep -q "RUNNING"; then
+  echo "Container $CONTAINER_NAME is already running. Restarting..."
+  lxc-stop -n "$CONTAINER_NAME"
+  sleep 2
+fi
 
-# Wait for the container to fully start (simple loop, adjust timeout as needed)
+# Container'ı başlat.
+lxc-start -n "$CONTAINER_NAME"
+
+# Container'ın çalıştığını doğrula.
 echo "Waiting for container to start..."
-while [ "$(lxc-info -n apachep -s | awk '{print $2}')" != "RUNNING" ]; do
+while [ "$(lxc-info -n "$CONTAINER_NAME" -s | awk '{print $2}')" != "RUNNING" ]; do
     sleep 1
 done
+echo "Container $CONTAINER_NAME is running."
 
-echo "Container apachep is running."
+# dnsmasq'ın container içinde 53 numaralı portta dinlemeye başlamasını kontrol eden fonksiyon.
+wait_for_dnsmasq() {
+    local elapsed=0
+    while ! lxc-attach -n "$CONTAINER_NAME" -- sh -c "ss -lun | grep -q ':53 '" ; do
+        echo "dnsmasq not ready yet, waiting..."
+        sleep 1
+        elapsed=$((elapsed+1))
+        if [ $elapsed -ge $DNS_TIMEOUT ]; then
+            echo "dnsmasq not ready after ${DNS_TIMEOUT} seconds."
+            return 1
+        fi
+    done
+    return 0
+}
 
-# Set resolvectl settings on lxcbr0
-resolvectl domain lxcbr0 '~{{container_domain}}'
-resolvectl dns lxcbr0 {{container_ip}}
+# dnsmasq hazır mı kontrol et, timeout olursa container'ı yeniden başlat.
+if ! wait_for_dnsmasq; then
+    echo "Restarting container due to dnsmasq timeout..."
+    lxc-stop -n "$CONTAINER_NAME"
+    sleep 2
+    lxc-start -n "$CONTAINER_NAME"
+    echo "Waiting for container to start..."
+    while [ "$(lxc-info -n "$CONTAINER_NAME" -s | awk '{print $2}')" != "RUNNING" ]; do
+        sleep 1
+    done
+    echo "Container $CONTAINER_NAME is running again."
+    
+    # dnsmasq için yeniden bekle.
+    if ! wait_for_dnsmasq; then
+        echo "dnsmasq still not ready after container restart. Exiting."
+        exit 1
+    fi
+fi
 
-# Ensure the target mount directory exists
-mkdir -p /home/{{user}}/apachep
+echo "dnsmasq is ready in the container."
 
-# Bind mount the container's /var/www to host's /home/{{user}}/apachep
-mount --bind /var/lib/lxc/apachep/rootfs/var/www /home/{{user}}/apachep
+sleep 3
 
-echo "Mount completed successfully."
+# İnternet bağlantısını kontrol et (8.8.8.8'e ping).
+if ! lxc-attach -n "$CONTAINER_NAME" -- ping -c 1 -W 1 8.8.8.8 > /dev/null 2>&1; then
+    echo "Warning: dnsmasq is active, but container has no internet connectivity!"
+fi
+
+sleep 3
+
+# lxcbr0 üzerinde host DNS ayarlarını yapılandır.
+#resolvectl domain lxcbr0 'hdn'
+#resolvectl dns lxcbr0 10.0.3.8
+
+# Hedef mount dizininin var olduğundan emin ol.
+mkdir -p /home/work/apachep
+
+# Eğer /home/work/apachep zaten mount edilmişse, bind mount işlemini atla.
+if mountpoint -q /home/work/apachep; then
+    echo "/home/work/apachep is already mounted. Skipping bind mount."
+else
+    mount --bind /var/lib/lxc/"$CONTAINER_NAME"/rootfs/var/www /home/work/apachep
+    echo "Mount completed successfully."
+fi
+
+# systemd-resolved servisini yeniden başlat ve değişikliklerin uygulanması için bekle.
+systemctl restart systemd-resolved
+sleep 2
+
+echo "DNS settings and mount operations have been applied successfully."

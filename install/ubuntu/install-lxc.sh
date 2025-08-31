@@ -27,7 +27,7 @@ fi
 
 # 4. Create the "apachep" container.
 echo "Creating the 'apachep' container..."
-lxc-create -n apachep -t download -- -d ubuntu -r focal -a amd64
+lxc-create -n apachep -t download -- -d ubuntu -r jammy -a amd64
 if [ $? -ne 0 ]; then
   echo "Failed to create the container." >&2
   exit 1

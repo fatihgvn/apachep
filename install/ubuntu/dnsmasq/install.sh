@@ -2,8 +2,8 @@
 set -e
 
 # Usage: ./script.sh [domain_extension]
-# If no domain extension parameter is provided, the default "dev" is used.
-DOMAIN_EXT="${1:-dev}"
+# If no domain extension parameter is provided, the default "hdn" is used.
+DOMAIN_EXT="${1:-hdn}"
 
 get_system_ip() {
     hostname -I | awk '{print $1}'
